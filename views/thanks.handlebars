@@ -1,0 +1,11 @@
+<div class="container" id="thankYouWrapper">
+    <h1>Thank you for signing the petition!</h1>
+    <div id="signatures">
+        <ul>
+        {{#signatures}}
+            
+            <li>{{first}} {{last}}, signed on {{created_at}}</li>
+        {{/signatures}}
+        </ul>
+    </div>
+</div>
