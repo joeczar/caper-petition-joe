@@ -3,8 +3,8 @@ const db = spicedPg(
     'postgres:ripley:IfIhad1PostGres!@localhost:5432/caper-petition'
 );
 
-module.exports.getSignatures = () => {
-    let q = 'SELECT * FROM signatures';
+module.exports.getNames = () => {
+    let q = 'SELECT first, last, created_at FROM signatures';
     return db.query(q);
 };
 

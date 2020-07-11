@@ -1,29 +1,88 @@
 # Caper Petition Project
 
+## next steps for part 1
+
+separate part 1 into different parts
+
+-   Server routes
+    -   ✔️`GET /petition`
+        -   renders petition template
+    -   ✔️`POST /petition`
+        -   renders petition template if there is an error
+            -   for example, an error might happen if a user leaves an input field blank...
+        -   redirects to thanks page if insert was successful
+    -   ✔️`GET /thanks`
+        -   get number of signers
+        -   renders thanks template
+    -   `GET /petition/signers`
+        -   gets the first and last names of the signers from db and passes them to the signers template
+-   Queries
+
+    -   ✔️`INSERT` into signatures
+    -   ✔️`SELECT` the names of the signers
+    -   `SELECT` to figure out the number of signers
+
+-   Handlebars Templates
+    -   ✔️petition (link JS file that contains code for canvas here)
+    -   ✔️thanks
+    -   signers
+    -   ✔️a layout (link jQuery, CSS here)
+    -   any partials you want (optional)
+
 ## Part 1
 
 Part one has three pages
 
-1. Petition Page
+1. ✔️`/petition`
 
-    - Form with `firstName`, `lastName`
-    - Canvas Element for `signature`
-        - use jQuery
-        - js file in public directory
-        - 3 events for the canvas element
-            1. `mousedown`
-                - start drawing
-            2. `mousemove`
-                - follow mouse and draw on canvas
-            3. `mouseup`
-                - stops drawing
-                - turn drawing into url
-                    - call `.toDataUrl` on canvas to generate
-                - find way to send that to server
-                    - put sig url into an inputfield
-    - Input fields - firstName, lastName, signature (hidden)
-    - Submit button
-        - form tag makes post request to server.
-        - create a post route in server that handles this request
+    - `input` fields for first, last, `canvas` for signature, and button. all wrapped in a form!
+    - `canvas`
+    - you'll probably want to use jQuery
+    - create a JS file in your public directory. this JS file in your public directory will contain all the code that allows the user to sign the `canvas`!
+    - we'll need to add 3 events to the `canvas` element
+    - ✔️`mousedown`
+        - start drawing
+    - ✔️`mousemove`
 
-2) Thank You Page
+        - draws the line
+        - it will follow the users cursor and draw lines along the way
+        - we'll need to, in the `mousemove`, know where the user's cursor is within the canvas element
+
+    - ✔️`mouseup`
+
+        - finish drawing
+        - we need to do two big things her:
+        - turn the drawing into a url that we can `INSERT` into signatures
+        - call `.toDataURL()` on the canvas to get that big url
+        - send that big url to the server, and the server will then do the INSERT
+        - we're going to put that big url in an input field
+          so...
+        - in our petition template, inside of the form tag, we will need 3 input fields: (1) first, (2) last, (3) signature
+        - the signature input field will be hidden (give it `type='hidden'`)
+        - when the user mouse's up, we can set the value of that input field to be the big url
+
+    - ✔️`submit`
+        - the form tag will automatically make a POST request to your server
+        - you need to write a `app.post` in your server that will run when this request happens
+        - in this app.post route, you need to take the input we got from the user (so their first, last, and signature) and `INSERT` it into our signatures table
+        - how can get to a point in our server where we can log something and see, in our server, what input the user provided???
+    - ✔️`INSERT` query
+
+        - that will insert that first, last, and signature into the signatures table
+        - write the query in your `db.js` file, but RUN it in `index.js`, in the app.post route
+        - once the first, last, and signature have been successfully inserted into signatures, then redirect the user to the next page
+
+    - `ERROR HANDLING`: render an error message on screen if...
+        - the user leaves one of the input fields blank
+        - or if some other type of unexpected error occurs
+
+2. ✔️`/thanks`
+    - renders a thank you message
+      has a link to the next page
+      render the number of signers.
+3. `/signers`
+    - `GET /petition/signers` route (in your server)...
+    - run a `SELECT` query, that's going to `SELECT` every first and last name from signatures
+    - once you can console log the results of that query and see in your Terminal all of the names of the signers...
+    - then give that list of signers to your signers template
+      and have the template render that list

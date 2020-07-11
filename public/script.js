@@ -1,9 +1,6 @@
 (function () {
-    console.log($);
-
     const canvas = document.querySelector('#canvas');
     const sigInput = document.querySelector('#signInput');
-    const first = document.querySelector('#first');
 
     const ctx = canvas.getContext('2d');
 

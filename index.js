@@ -13,17 +13,38 @@ app.use(
 );
 
 app.get('/petition', (req, res) => {
-    res.render('petition', {
+    res.render('petitionPage', {
         title: 'Petition',
+        headerTitle: 'Help us get faster WiFi @ Spiced Academy!',
+        petitionReason: 'get faster WiFi at Spiced Academy',
     });
 });
-
+app.get('/petition/signers', (req, res) => {
+    db.getNames().then((data) => {
+        let count = 0;
+        const cleaned = data.rows.map((name) => {
+            let { first, last, created_at } = name;
+            const date = new Date(created_at).toLocaleString('de-DE');
+            count++;
+            return { first, last, date };
+        });
+        res.render('signersPage', {
+            title: 'Signers',
+            headerTitle: `${count} supporters have signed out petition`,
+            signatures: cleaned,
+        });
+    });
+});
 app.get('/thanks', (req, res) => {
-    db.getSignatures()
+    db.getNames()
         .then((data) => {
+            const signers = data.rows.length;
+
             res.render('thanks', {
                 title: 'Thank You!',
-                signatures: data.rows,
+                headerTitle: 'We need faster WiFi!',
+                petitionReason: 'get faster WiFi at Spiced Academy',
+                signers: signers,
             });
         })
         .catch((err) => console.log('error in get-signatures', err));
