@@ -8,7 +8,14 @@
 </head>
 <body>
     <header>
-        <h1>{{headerTitle}}</h1>
+        <h1>{{headerTitle.headline}}</h1>
+        <div id="subTextWrapper">
+            <div id="subMove">
+                {{#headerTitle.subText}}
+                <h4 class="subs">{{.}}</h4>
+               {{/headerTitle.subText}}    
+            </div>
+        </div>
     </header>
     <main>
         {{{body}}}
@@ -16,6 +23,6 @@
     <footer>
         <span class="copyright">© 2020 Joe Czarnecki</span>
     </footer>   
-    
+    <script src='/scriptMain.js'></script>
 </body>
 </html>

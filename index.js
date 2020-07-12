@@ -2,6 +2,16 @@ const express = require('express');
 const hb = require('express-handlebars');
 const app = express();
 const db = require('./db');
+const headerTitle = {
+    headline: 'Switch to Open Source Software',
+    subText: [
+        'Say no to surveillance capitalism!',
+        'Say yes to privacy!',
+        'Say yes to open source, not for profit software!',
+    ],
+};
+const petitionReason =
+    'say no to surveillance capitalism, protect your privacy and support open source, not for profit software!';
 
 app.engine('handlebars', hb());
 app.set('view engine', 'handlebars');
@@ -11,12 +21,18 @@ app.use(
         extended: true,
     })
 );
-
+app.get('/', (req, res) => {
+    res.render('home', {
+        title: 'Zoom Petition',
+        headerTitle,
+        petitionReason,
+    });
+});
 app.get('/petition', (req, res) => {
     res.render('petitionPage', {
         title: 'Petition',
-        headerTitle: 'Help us get faster WiFi @ Spiced Academy!',
-        petitionReason: 'get faster WiFi at Spiced Academy',
+        headerTitle,
+        petitionReason,
     });
 });
 app.get('/petition/signers', (req, res) => {
@@ -36,15 +52,14 @@ app.get('/petition/signers', (req, res) => {
     });
 });
 app.get('/thanks', (req, res) => {
-    db.getNames()
-        .then((data) => {
-            const signers = data.rows.length;
-
+    db.getCount()
+        .then((count) => {
+            const num = count.rows[0].count;
             res.render('thanks', {
                 title: 'Thank You!',
-                headerTitle: 'We need faster WiFi!',
-                petitionReason: 'get faster WiFi at Spiced Academy',
-                signers: signers,
+                headerTitle,
+                petitionReason,
+                signers: num,
             });
         })
         .catch((err) => console.log('error in get-signatures', err));

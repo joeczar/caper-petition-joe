@@ -14,19 +14,19 @@ separate part 1 into different parts
     -   ✔️`GET /thanks`
         -   get number of signers
         -   renders thanks template
-    -   `GET /petition/signers`
+    -   ✔️`GET /petition/signers`
         -   gets the first and last names of the signers from db and passes them to the signers template
 -   Queries
 
     -   ✔️`INSERT` into signatures
     -   ✔️`SELECT` the names of the signers
-    -   `SELECT` to figure out the number of signers
+    -   ✔️`SELECT` to figure out the number of signers
 
 -   Handlebars Templates
-    -   ✔️petition (link JS file that contains code for canvas here)
-    -   ✔️thanks
-    -   signers
-    -   ✔️a layout (link jQuery, CSS here)
+    -   ✔️ petition (link JS file that contains code for canvas here)
+    -   ✔️ thanks
+    -   ✔️ signers
+    -   ✔️ a layout (link jQuery, CSS here)
     -   any partials you want (optional)
 
 ## Part 1
@@ -72,7 +72,7 @@ Part one has three pages
         - write the query in your `db.js` file, but RUN it in `index.js`, in the app.post route
         - once the first, last, and signature have been successfully inserted into signatures, then redirect the user to the next page
 
-    - `ERROR HANDLING`: render an error message on screen if...
+    - ✔️`ERROR HANDLING`: render an error message on screen if...
         - the user leaves one of the input fields blank
         - or if some other type of unexpected error occurs
 
@@ -80,7 +80,7 @@ Part one has three pages
     - renders a thank you message
       has a link to the next page
       render the number of signers.
-3. `/signers`
+3. ✔️`/signers`
     - `GET /petition/signers` route (in your server)...
     - run a `SELECT` query, that's going to `SELECT` every first and last name from signatures
     - once you can console log the results of that query and see in your Terminal all of the names of the signers...

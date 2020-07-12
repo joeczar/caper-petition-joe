@@ -7,7 +7,9 @@ module.exports.getNames = () => {
     let q = 'SELECT first, last, created_at FROM signatures';
     return db.query(q);
 };
-
+module.exports.getCount = () => {
+    return db.query('SELECT count(*) FROM signatures');
+};
 module.exports.addSignature = (sigArr) => {
     const q = `INSERT INTO signatures (first, last, signature) VALUES ($1, $2, $3)`;
     const params = sigArr;

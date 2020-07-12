@@ -29,3 +29,33 @@ canvas {
 .inputWrapper {
     margin: 15px auto;
 }
+.alert {
+    border: 2px solid red;
+}
+
+#subTextWrapper {
+    height: 25px;
+
+    overflow: hidden;
+    margin: 0px auto;
+    padding: 0px;
+    text-align: center;
+    position: relative;
+}
+
+#subTextWrapper h4 {
+    margin: 0 auto;
+    padding: 0px;
+}
+#subMove {
+    position: absolute;
+    top: -125px;
+    width: 100%;
+}
+.subs {
+    margin: 0px auto;
+    text-align: center;
+    width: 100%;
+    height: 45px;
+    padding: 0px;
+}

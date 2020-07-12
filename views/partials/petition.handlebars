@@ -1,20 +1,19 @@
 <h1>Please sign the petition {{petitionReason}}</h1>
 <div class="formWrapper">
-    <form action='/add-signature' method='POST' target="/thanks">
+    <form id="petitionForm" name="petitionForm" action='/add-signature' method='POST' target="/thanks">
         <div id="firstWrapper" class="inputWrapper">
             <label for='first'>First name:</label><br>
-            <input type='text' id='first' name='first' placeholder="Meryl">
+            <input type='text' id='first' name='first' placeholder="Meryl" pattern="[A-Za-zöÖüÜäÄ]+" >
         </div>
         <div id="lastWrapper" class="inputWrapper">
             <label for='last'>Last name:</label><br>
-            <input type='text' id='last' name='last' placeholder="Streep">
+            <input type='text' id='last' name='last' placeholder="Streep" pattern="[A-Za-zöÖüÜäÄ]+" >
         </div>
         <div class="canvasWrapper">
             <canvas id="canvas" width="400" height="75"></canvas>
             <input id="signInput" type="hidden" name='signature'>
         </div>
-        <button id="submit" type='submit'>Submit</button>
+        <button id="btnSubmit" name="btnSubmit">Submit</button>
     </form>
 </div>
-<script src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
 <script src='script.js'></script>
