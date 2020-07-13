@@ -86,3 +86,10 @@ Part one has three pages
     - once you can console log the results of that query and see in your Terminal all of the names of the signers...
     - then give that list of signers to your signers template
       and have the template render that list
+
+## Next Steps for Pt. 2
+
+    1. Remove cookie-parser - no longer using this & replace it with cookie-session middleware
+    2. change the POST /petition route - add id of the signature in the cookie using cookie-session
+    3. change the GET /thanks route to make a db query to get the signature url
+        - render the signature onscreen by putting the sig url in an <img> tag in your thanks handlebars page

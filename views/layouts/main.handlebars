@@ -7,8 +7,10 @@
     <title>{{title}}</title>
 </head>
 <body>
-    <header>
+    <header class='shadow-5'>
+        <div class="title">
         <h1>{{headerTitle.headline}}</h1>
+        </div>
         <div id="subTextWrapper">
             <div id="subMove">
                 {{#headerTitle.subText}}
@@ -20,9 +22,10 @@
     <main>
         {{{body}}}
     </main> 
-    <footer>
+    <footer class="shadow-5">
         <span class="copyright">© 2020 Joe Czarnecki</span>
-    </footer>   
+    </footer>
+    <script src='https://code.jquery.com/jquery-3.3.1.min.js'></script>   
     <script src='/scriptMain.js'></script>
 </body>
 </html>
