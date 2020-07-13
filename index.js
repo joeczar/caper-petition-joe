@@ -38,6 +38,7 @@ app.use(function (req, res, next) {
 });
 app.get('/', (req, res) => {
     res.render('home', {
+        layout: 'landing',
         title: 'Zoom Petition',
         headerTitle,
         petitionReason,
