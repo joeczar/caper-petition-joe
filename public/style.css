@@ -90,6 +90,10 @@ canvas {
     border-radius: 10px;
     margin: 15px auto;
 }
+.canvasWrapper {
+    margin: auto;
+    width: 400px;
+}
 .inputWrapper {
     margin: 15px auto;
 }

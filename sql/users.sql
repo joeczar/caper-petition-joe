@@ -1,6 +1,6 @@
---  psql caper-petition -f users.sql
+--  psql caper-petition -f sql/users.sql
 
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,

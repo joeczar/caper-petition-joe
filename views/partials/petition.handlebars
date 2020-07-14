@@ -1,22 +1,17 @@
-<h1>Please sign the petition {{petitionReason}}</h1>
+<h1>{{name.first}} {{name.last}}, sign the petition: {{petitionReason}}</h1>
 <div class="formWrapper shadow-3">
     <header class="formHeader shadow-3"><h2>Sign here:</h2></header>
-    <form class='form' id="petitionForm" name="petitionForm" action='/add-signature' method='POST' target="/thanks">
-        <div id="firstWrapper" class="inputWrapper">
-            <label for='first'>First name:</label><br>
-            <input class="shadow-2" type='text' id='first' name='first' placeholder="Meryl" pattern="[A-Za-zöÖüÜäÄ]+" >
-        </div>
-        <div id="lastWrapper" class="inputWrapper">
-            <label for='last'>Last name:</label><br>
-            <input class="shadow-2" type='text' id='last' name='last' placeholder="Streep" pattern="[A-Za-zöÖüÜäÄ]+" >
-        </div>
-        <div class="canvasWrapper">
-            <label for='canvas'>Signature:</label>
-            <canvas class="shadow-2" id="canvas" width="400" height="75"></canvas>
+    <form class='form' id="petitionForm" name="petitionForm" action='/petition' method='POST' target="/thanks">
+        <div class="inputWrapper">
+            <div class="canvasWrapper">
+                <label for='canvas'>Signature:</label>
+                <canvas class="shadow-2" id="canvas" width="400" height="75"></canvas>
+            </div>
+            
             <input id="signInput" type="hidden" name='signature'>
-            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            {{>csrf}}
         </div>
         <button class="btn shadow-1" id="btnSubmit" name="btnSubmit">Submit</button>
-    </form>
+    </form> 
 </div>
 <script src='script.js'></script>

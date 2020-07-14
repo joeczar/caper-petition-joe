@@ -5,7 +5,6 @@ const db = require('./db');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
 const { hash, compare } = require('./bc');
-const { formWrapper } = require('./hbHelpers');
 
 const headerTitle = {
     headline: 'Switch to Open Source Software',
@@ -25,13 +24,7 @@ app.use(
     })
 );
 
-const hbs = hb.create({
-    helpers: {
-        formWrapper,
-    },
-});
-
-app.engine('handlebars', hbs.engine);
+app.engine('handlebars', hb());
 app.set('view engine', 'handlebars');
 
 app.use(
@@ -55,7 +48,6 @@ app.get('/', (req, res) => {
 app.get('/register', (req, res) => {
     res.render('register', {
         title: 'Register',
-        // helpers: formWrapper,
         headerTitle,
     });
 });
@@ -67,7 +59,7 @@ app.post('/register', (req, res) => {
             const usrArr = [firstName, lastName, emailInput, hashed];
 
             db.addUser(usrArr).then((data) => {
-                req.session.signatureId = data.rows[0].id;
+                req.session.registerId = data.rows[0].id;
                 res.redirect('/petition');
             });
         })
@@ -86,63 +78,96 @@ app.post('/login', (req, res) => {
     // compare user input pw with hash
 });
 app.get('/petition', (req, res) => {
+    console.log(req.session);
     if (req.session.signatureId) {
         res.redirect('/thanks');
     } else {
-        res.render('petitionPage', {
-            title: 'Petition',
-            headerTitle,
-            petitionReason,
+        db.getUserName(req.session.registerId).then((data) => {
+            const name = data.rows[0];
+            res.render('petitionPage', {
+                title: 'Petition',
+                headerTitle,
+                petitionReason,
+                name,
+            });
         });
     }
 });
 app.get('/petition/signers', (req, res) => {
-    db.getNames().then((data) => {
-        let count = 0;
-        const cleaned = data.rows.map((name) => {
-            let { first, last, created_at } = name;
-            const date = new Date(created_at).toLocaleString('de-DE');
-            count++;
+    db.getNames()
+        .then((data) => {
+            let count = 0;
+            const cleaned = data.rows.map((name) => {
+                let { first, last, created_at } = name;
+                const date = new Date(created_at).toLocaleString('de-DE');
+                count++;
 
-            return { first, last, date };
+                return { first, last, date };
+            });
+            res.render('signersPage', {
+                title: 'Signers',
+                headerTitle,
+                signatures: cleaned,
+                count,
+            });
+        })
+        .catch((err) => {
+            console.log('error in signers', err);
         });
-        res.render('signersPage', {
-            title: 'Signers',
-            headerTitle,
-            signatures: cleaned,
-            count,
-        });
-    });
 });
 app.get('/thanks', (req, res) => {
-    db.getCount()
-        .then((count) => {
-            const num = count.rows[0].count;
-
-            db.getSignature(req.session.signatureId)
-                .then((sig) => {
-                    const { first, last, created_at, signature } = sig.rows[0];
-                    const date = new Date(created_at).toLocaleString('de-DE');
-                    res.render('thanks', {
-                        title: 'Thank You!',
-                        headerTitle,
-                        petitionReason,
-                        signers: num,
-                        first,
-                        last,
-                        date: date.split(', '),
-                        signature,
-                    });
-                })
-                .catch((err) => console.log(err));
-        })
-        .catch((err) => console.log('error in get-signatures', err));
+    if (!req.session.registerId) {
+        res.redirect('/register');
+    } else if (!req.session.signatureId) {
+        res.redirect('/petition');
+    } else {
+        db.getCount()
+            .then((count) => {
+                const num = count.rows[0].count;
+                console.log(num);
+                if (num === '0') {
+                    res.redirect('/petition');
+                } else {
+                    db.getSignature(req.session.signatureId)
+                        .then((sig) => {
+                            db.getUserName(req.session.registerId)
+                                .then((data) => {
+                                    const name = data.rows[0];
+                                    return name;
+                                })
+                                .then((name) => {
+                                    const {
+                                        created_at,
+                                        signature,
+                                    } = sig.rows[0];
+                                    const date = new Date(
+                                        created_at
+                                    ).toLocaleString('de-DE');
+                                    res.render('thanks', {
+                                        title: 'Thank You!',
+                                        headerTitle,
+                                        petitionReason,
+                                        signers: num,
+                                        date: date.split(', '),
+                                        signature,
+                                        name,
+                                    });
+                                });
+                        })
+                        .catch((err) =>
+                            console.log('error in getSignature', err)
+                        );
+                }
+            })
+            .catch((err) => console.log('error in get-signatures', err));
+    }
 });
 
-app.post('/add-signature', (req, res) => {
-    const { first, last, signature } = req.body;
+app.post('/petition', (req, res) => {
+    const { signature } = req.body;
+    const userId = req.session.registerId;
 
-    db.addSignature([first, last, signature])
+    db.addSignature([signature, userId])
         .then((data) => {
             req.session.signatureId = data.rows[0].id;
             res.redirect('/thanks');
@@ -151,4 +176,4 @@ app.post('/add-signature', (req, res) => {
 });
 app.use(express.static('public'));
 
-app.listen(8080, () => console.log('Server running at http://localhost:8080'));
+app.listen(8081, () => console.log('Server running at http://localhost:8081'));

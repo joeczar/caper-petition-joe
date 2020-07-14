@@ -1,15 +1,13 @@
 (function () {
     const canvas = document.querySelector('#canvas');
     const sigInput = document.querySelector('#signInput');
-    const first = document.querySelector('#first');
-    const last = document.querySelector('#last');
     const submit = document.querySelector('#btnSubmit');
     const ctx = canvas.getContext('2d');
-    const fields = [first, last, sigInput];
+    const fields = [sigInput];
     let isDrawing = false;
     let x = 0;
     let y = 0;
-    const regex = /^[A-Za-zöÖüÜäÄ]+$/;
+
     canvas.addEventListener(
         'mousedown',
         (e) => {
@@ -63,21 +61,7 @@
             sigInput.value = '';
         }
     });
-    fields.forEach((el) => {
-        el.addEventListener('input', (e) => {
-            let val = el.value;
-            // console.log(e);
-            if (
-                !regex.test(val) &&
-                el.inputType !== 'deleteContentBackward' &&
-                val !== ''
-            ) {
-                window.alert('Names cannot contain numbers or symbols');
-            }
 
-            el.classList.remove('alert');
-        });
-    });
     function isCanvasBlank(canvas) {
         const blank = document.createElement('canvas');
 
