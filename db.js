@@ -20,3 +20,8 @@ module.exports.getSignature = (id) => {
         `SELECT first, last, created_at, signature  FROM signatures WHERE id=${id}`
     );
 };
+module.exports.addUser = (userArr) => {
+    const q = `INSERT INTO users (first, last, email, hash) VALUES ($1, $2, $3, $4) RETURNING id`;
+    const params = userArr;
+    return db.query(q, params);
+};

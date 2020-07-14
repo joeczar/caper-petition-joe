@@ -89,7 +89,18 @@ Part one has three pages
 
 ## Next Steps for Pt. 2
 
-    1. Remove cookie-parser - no longer using this & replace it with cookie-session middleware
-    2. change the POST /petition route - add id of the signature in the cookie using cookie-session
-    3. change the GET /thanks route to make a db query to get the signature url
-        - render the signature onscreen by putting the sig url in an <img> tag in your thanks handlebars page
+1. Remove cookie-parser - no longer using this & replace it with cookie-session middleware
+2. change the `POST /petition` route - add id of the signature in the cookie using cookie-session
+3. change the `GET /thanks` route to make a db query to get the signature url
+    - render the signature onscreen by putting the sig url in an `<img>` tag in your thanks handlebars page
+
+## Part 3 Auth - Log in & Registration
+
+1. Add a `users` table to the database.
+    - `userId | first | last | email | hash`
+2. Update Signatures table with column for `userId` in order to map users & signatures.
+3. Registration & Login pages need to be able to be updated with error messages.
+    - Both need a `<form>` that makes a `POST` request
+4. First name, last name, email address & password should all be required fields.
+    - Emails should unique & enforced by a constraint int the column
+5. After login, attach a user object to `req.session`.

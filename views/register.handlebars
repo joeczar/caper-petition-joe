@@ -1,0 +1,17 @@
+
+    
+    <div class="formWrapper shadow-3">
+        <header class="formHeader shadow-3">
+        <h2>Register here</h2>
+    </header>
+        <form class="form" id="register" name="register" action='/register' method='POST'>
+            {{>nameInput id='firstName' label='First name:' placeholder='Shanon'}}
+            {{>nameInput id='lastName' label='Last Name' placeholder='Oleary'}}
+            {{>emailInput id='emailInput' label='E-Mail' placeholder='stan@getz.org'}}
+            {{>passwordInput id='pwdInput' label='Password' placeholder='Your password'}}
+            {{>submitBtn id='submit' text="Register"}}
+            {{>csrf}}
+        </form>
+    </div>
+<script src='https://code.jquery.com/jquery-3.3.1.min.js'></script> 
+<script src='/registration.js'></script>

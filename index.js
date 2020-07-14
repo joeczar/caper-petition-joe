@@ -4,6 +4,8 @@ const app = express();
 const db = require('./db');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
+const { hash, compare } = require('./bc');
+const { formWrapper } = require('./hbHelpers');
 
 const headerTitle = {
     headline: 'Switch to Open Source Software',
@@ -23,7 +25,13 @@ app.use(
     })
 );
 
-app.engine('handlebars', hb());
+const hbs = hb.create({
+    helpers: {
+        formWrapper,
+    },
+});
+
+app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
 app.use(
@@ -43,6 +51,37 @@ app.get('/', (req, res) => {
         headerTitle,
         petitionReason,
     });
+});
+app.get('/register', (req, res) => {
+    res.render('register', {
+        title: 'Register',
+        // helpers: formWrapper,
+        headerTitle,
+    });
+});
+app.post('/register', (req, res) => {
+    // use hash here
+    hash(req.body.pwdInput)
+        .then((hashed) => {
+            const { firstName, lastName, emailInput } = req.body;
+            const usrArr = [firstName, lastName, emailInput, hashed];
+
+            db.addUser(usrArr).then((data) => {
+                req.session.signatureId = data.rows[0].id;
+                res.redirect('/petition');
+            });
+        })
+        .catch((err) => console.log('error in register', err));
+    // req.body.password
+});
+app.get('/login', (req, res) => {
+    res.render('register', {});
+});
+app.post('/login', (req, res) => {
+    // log req.body
+    //get email to  check ifUserExists & get user hash
+    // if no email match rerender login w/ error
+    // compare user input pw with hash
 });
 app.get('/petition', (req, res) => {
     if (req.session.signatureId) {
@@ -101,7 +140,6 @@ app.get('/thanks', (req, res) => {
 app.post('/add-signature', (req, res) => {
     const { first, last, signature } = req.body;
 
-    // needs an array of [first, last, signature]
     db.addSignature([first, last, signature])
         .then((data) => {
             req.session.signatureId = data.rows[0].id;
