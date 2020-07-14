@@ -75,7 +75,9 @@ app.post('/register', (req, res) => {
     // req.body.password
 });
 app.get('/login', (req, res) => {
-    res.render('register', {});
+    res.render('login', {
+        headerTitle,
+    });
 });
 app.post('/login', (req, res) => {
     // log req.body
