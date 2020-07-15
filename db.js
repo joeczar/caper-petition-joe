@@ -15,9 +15,10 @@ module.exports.addSignature = (sigArr) => {
     const params = sigArr;
     return db.query(q, params);
 };
-module.exports.getSignature = (id) => {
+module.exports.getSignature = (params) => {
     return db.query(
-        `SELECT created_at, signature  FROM signatures WHERE id=${id}`
+        `SELECT created_at, signature  FROM signatures WHERE user_id=$1`,
+        params
     );
 };
 module.exports.addUser = (userArr) => {
@@ -25,6 +26,9 @@ module.exports.addUser = (userArr) => {
     const params = userArr;
     return db.query(q, params);
 };
-module.exports.getUserName = (id) => {
-    return db.query(`SELECT first, last FROM users WHERE  id=${id}`);
+module.exports.getUserName = (params) => {
+    return db.query(`SELECT first, last FROM users WHERE  id=$1`, params);
+};
+module.exports.getUserLogin = (params) => {
+    return db.query(`SELECT id, hash FROM users WHERE email=$1 `, params);
 };

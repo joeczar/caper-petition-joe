@@ -1,0 +1,29 @@
+<div class="loginWrapper" id={{id}}>
+    
+    {{#if registered}}
+    <div class="logoutWrapper">
+        <div class="logoutLinkWrapper">
+            <a id="logoutLink" href="javascript://">Sign out</a>
+        </div>
+    
+    <div id="logoutDropdown" class="logoutDropDown shadow-5">
+        <h3>Are you sure you want to Sign out?</h3>
+        <form id="logoutForm" name="logout" action='/logout' method='POST'>
+        <button class="btn" id="cancelSignOut">cancel</button>
+        {{>submitBtn id="logoutBtn" text='Log out'}}
+        {{>csrf}}
+        </form>
+    </div>
+    </div>
+    </div>
+    
+    {{else}}
+    <a href="/login" class="loginLink">Login</a>
+    {{#unless register}}
+    <a href="/register" ><button class="btn registerBtn">Sign up!</button></a>
+    </div>
+    {{/unless}}
+    {{/if}}
+    <script>
+        
+    </script>

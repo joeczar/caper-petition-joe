@@ -57,12 +57,20 @@ h6 {
     font-family: 'manrope-bold';
 }
 header {
-    height: 100px;
+    background-color: var(--primary-dark);
+    color: var(--light-text);
+}
+.mainHeader {
+    height: 50px;
     margin: 0 auto;
     background-color: var(--primary-dark);
     color: var(--light-text);
     width: 100%;
     padding: 0px;
+    /* z-index: 5; */
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
 }
 main {
     height: 100%;
@@ -100,13 +108,68 @@ canvas {
 .alert {
     border: 2px solid red;
 }
-header .title {
-    margin: auto;
-    padding: 10px;
-    display: flex;
-    flex: 1;
-    height: calc(100% - 25px);
+.mainHeader .title {
+    margin: 0px;
+    padding: 0.25em;
 }
+.title h1 {
+    margin: auto;
+}
+/* header#landing */
+#landing {
+    height: 50px;
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--primary);
+}
+#landingTitle {
+    margin: auto auto auto 1em;
+}
+/* login/register  */
+.loginWrapper {
+    display: flex;
+    align-self: flex-end;
+    flex-direction: row;
+    justify-content: center;
+    margin: auto 2em auto auto;
+    width: 250px;
+}
+.loginWrapper a {
+    margin: auto;
+}
+#landingLogin a {
+    color: var(--secondary-light);
+}
+.logoutWrapper {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    position: relative;
+}
+.logoutLinkWrapper {
+    height: 50px;
+    display: flex;
+    z-index: 5;
+}
+.logoutLinkWrapper a {
+    margin: auto;
+    z-index: 4;
+}
+.logoutDropDown {
+    position: absolute;
+    background-color: var(--primary-light);
+    padding: 1em;
+    z-index: 5;
+    top: -200px;
+}
+#logoutForm {
+    display: flex;
+}
+#logoutForm .btn {
+    margin: auto;
+}
+
 /* scroller */
 #subTextWrapper {
     height: 25px;
@@ -264,7 +327,12 @@ article {
 .leftAr {
     margin-right: -7px;
 }
-
+.error {
+    background-color: var(--light-text);
+    border: 2px solid red;
+    margin: auto;
+    padding: 1em;
+}
 /*  shadows */
 .shadow-1 {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);

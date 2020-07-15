@@ -96,12 +96,76 @@ Part one has three pages
 
 ## Part 3 Auth - Log in & Registration
 
-1. ✔️ Add a `users` table to the database.
-    - `userId | first | last | email | hash`
-2. ✔️ Update Signatures table with column for `userId` in order to map users & signatures.
-3. Registration & Login pages need to be able to be updated with error messages.
-    - Both need a `<form>` that makes a `POST` request
-    - ✔️ Registration
-4. ✔️ First name, last name, email address & password should all be required fields.
-    - Emails should unique & enforced by a constraint int the column
-5. After login, attach a user object to `req.session`.
+1.  ✔️ Templates: Add 2 new handlebars templates (registration & login)
+
+    -   ✔️ Both templates should conditionally render error messages in case something goes wrong
+    -   ✔️ Both templates should have a `<form>` that makes a `POST` request to the server when you click the submit / login button.
+
+2.  Routes: Add 4 new routes in total
+
+    -   ✔️ `GET /register`
+
+    -   ✔️ `POST /register`
+
+        -   ✔️ grab the user input and read it on the server
+        -   ✔️ hash the password that the user typed and THEN
+            insert a row in the USERS table (new table) -> see 3. for table structure
+        -   ✔️ if the insert is successful, add `userId` in a cookie (value should be the id created by postgres when the row was inserted).
+        -   if insert fails, re-render template with an error message
+
+    -   ✔️ `GET /login`
+
+    -   ✔️ `POST /login`
+
+        -   ✔️ get the user's stored hashed password from the db using the user's email address
+        -   ✔️ pass the hashed password to `COMPARE` along with the password the user typed in the input field
+        -   ✔️ if they match, `COMPARE` returns a boolean value of true
+        -   ✔️ store the userId in a cookie
+            -   OPTIONAL: do a db query to find out if they've signed
+                -   if yes, you want to put their sigId in a cookie & redirect to `/thanks`
+                -   if not, redirect to `/petition`
+                    if they don't match, `COMPARE` returns a boolean value of false & re-render with an error message
+
+    -   ✔️ `POST /petition`
+        -   alter your route so that you pass userId from the cookie to your query instead of first and last name
+
+3.  ✔️ Tables
+
+    -   ✔️ Create a new table for USERS
+
+    ```
+    CREATE TABLE users(
+        id SERIAL PRIMARY KEY,
+        first VARCHAR(255) NOT NULL,
+        last VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ```
+
+    -   ✔️ Modify the signatures Table
+        -   this is what signatures should look like for pt 3 and on..
+        -   don't run this file until you're at part 3!
+
+    ```
+        CREATE TABLE signatures(
+            id SERIAL PRIMARY KEY,
+            -- get rid of first and last!
+            signature TEXT NOT NULL,
+            user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+    ```
+
+        -- here we are adding the foreign key (user_id)
+        -- foreign key lets us identify which user from the users table signed the petition
+        -- and which signature is theirs (acts as an identifier btw the 2 tables!)
+
+4.  Queries
+    -   ✔️ `INSERT` in users table (in `post /registration`)
+    -   ✔️ `SELECT` to get user info by email address (in p`ost /login`)
+    -   ✔️ `INSERT` for signatures table needs to be changed to include the user_id (in `post /petition`)
+    -   ✔️ `SELECT` from signature to find out if they've signed (`post /login`)
+
+## Part 4 Profile

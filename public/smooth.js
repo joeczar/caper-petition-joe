@@ -23,4 +23,24 @@
             }
         });
     });
+
+    $('#logoutLink').on('click', (e) => {
+        $('#logoutDropdown').animate(
+            {
+                top: '0px',
+            },
+            500
+        );
+        $('#cancelSignOut').on('click', () => {
+            $('#logoutDropdown').animate(
+                {
+                    top: '-200px',
+                },
+                500
+            );
+        });
+        $('#logoutBtn').on('click', () => {
+            console.log('Logout');
+        });
+    });
 })();

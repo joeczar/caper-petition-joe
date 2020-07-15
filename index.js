@@ -5,17 +5,8 @@ const db = require('./db');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
 const { hash, compare } = require('./bc');
-
-const headerTitle = {
-    headline: 'Switch to Open Source Software',
-    subText: [
-        'Say no to surveillance capitalism!',
-        'Say yes to privacy!',
-        'Say yes to open source, not for profit software!',
-    ],
-};
-const petitionReason =
-    'say no to surveillance capitalism, protect your privacy and support open source, not for profit software!';
+const { headerTitle, petitionReason } = require('./petitionData');
+let registered, signed;
 
 app.use(
     cookieSession({
@@ -37,63 +28,132 @@ app.use(function (req, res, next) {
     res.locals.csrfToken = req.csrfToken();
     next();
 });
+app.use((req, res, next) => {
+    registered = req.session.registerId ? true : false;
+    signed = req.session.signatureId ? true : false;
+    next();
+});
 app.get('/', (req, res) => {
+    console.log('/', req.session);
     res.render('home', {
         layout: 'landing',
-        title: 'Zoom Petition',
+        title: 'Switch to OSS',
         headerTitle,
         petitionReason,
+        registered,
+        signed,
     });
 });
+app.post('/logout', (req, res) => {
+    console.log('logout', req.session);
+    delete req.session['registerId'];
+    res.redirect('/');
+});
 app.get('/register', (req, res) => {
-    res.render('register', {
-        title: 'Register',
-        headerTitle,
-    });
+    console.log('register', req.session);
+    if (req.session.registerId) {
+        res.redirect('/petition');
+    } else {
+        res.render('register', {
+            title: 'Register',
+            headerTitle,
+            register: true,
+            registered,
+            signed,
+        });
+    }
 });
 app.post('/register', (req, res) => {
     // use hash here
+    console.log('POST register', req.session);
     hash(req.body.pwdInput)
         .then((hashed) => {
             const { firstName, lastName, emailInput } = req.body;
             const usrArr = [firstName, lastName, emailInput, hashed];
-
-            db.addUser(usrArr).then((data) => {
-                req.session.registerId = data.rows[0].id;
-                res.redirect('/petition');
-            });
+            return usrArr;
         })
-        .catch((err) => console.log('error in register', err));
+        .then((data) => {
+            return db.addUser(data);
+        })
+        .then((data) => {
+            req.session.registerId = data.rows[0].id;
+            res.redirect('/petition');
+        })
+        .catch((err) => {
+            console.log('error in register', err);
+            let error;
+            if (err.detail.includes('already exists')) {
+                error =
+                    'That email is already in use. Would you like to log in?';
+            } else {
+                error = 'Something went wrong, please try again.';
+            }
+            res.render('register', {
+                title: 'Register',
+                headerTitle,
+                error,
+                registered,
+                signed,
+            });
+        });
     // req.body.password
 });
 app.get('/login', (req, res) => {
+    console.log('login', req.session);
     res.render('login', {
         headerTitle,
+        registered,
+        signed,
     });
 });
 app.post('/login', (req, res) => {
-    // log req.body
-    //get email to  check ifUserExists & get user hash
-    // if no email match rerender login w/ error
-    // compare user input pw with hash
+    console.log('POST login', req.session);
+    const { emailInput, pwdInput } = req.body;
+
+    db.getUserLogin([emailInput])
+        .then((data) => {
+            const { id, hash } = data.rows[0];
+            return compare(pwdInput, hash).then((data) => {
+                if (data) {
+                    // set login cookie
+                    req.session.registerId = id;
+                    // check if signed
+                    return id;
+                }
+            });
+        })
+        .then((id) => {
+            if (id) {
+                return db.getSignature([id]).then((data) => {
+                    req.session.signatureId = data.rows[0].id;
+                    res.redirect('/thanks');
+                });
+            }
+        })
+        .catch((err) => {
+            console.log('error getting user hash', err);
+        });
 });
 app.get('/petition', (req, res) => {
-    console.log(req.session);
+    console.log('petition', req.session);
     if (req.session.signatureId) {
         res.redirect('/thanks');
     } else {
-        db.getUserName(req.session.registerId).then((data) => {
+        db.getUserName([req.session.registerId]).then((data) => {
             const name = data.rows[0];
             res.render('petitionPage', {
                 title: 'Petition',
                 headerTitle,
                 petitionReason,
                 name,
+                registered,
+                signed,
             });
         });
     }
 });
 app.get('/petition/signers', (req, res) => {
+    console.log('petition/signers', req.session);
     db.getNames()
         .then((data) => {
             let count = 0;
@@ -109,6 +169,8 @@ app.get('/petition/signers', (req, res) => {
                 headerTitle,
                 signatures: cleaned,
                 count,
+                registered,
+                signed,
             });
         })
         .catch((err) => {
@@ -116,6 +178,7 @@ app.get('/petition/signers', (req, res) => {
         });
 });
 app.get('/thanks', (req, res) => {
+    console.log('thanks', req.session);
     if (!req.session.registerId) {
         res.redirect('/register');
     } else if (!req.session.signatureId) {
@@ -124,46 +187,47 @@ app.get('/thanks', (req, res) => {
         db.getCount()
             .then((count) => {
                 const num = count.rows[0].count;
-                console.log(num);
                 if (num === '0') {
                     res.redirect('/petition');
                 } else {
-                    db.getSignature(req.session.signatureId)
-                        .then((sig) => {
-                            db.getUserName(req.session.registerId)
-                                .then((data) => {
-                                    const name = data.rows[0];
-                                    return name;
-                                })
-                                .then((name) => {
-                                    const {
-                                        created_at,
-                                        signature,
-                                    } = sig.rows[0];
-                                    const date = new Date(
-                                        created_at
-                                    ).toLocaleString('de-DE');
-                                    res.render('thanks', {
-                                        title: 'Thank You!',
-                                        headerTitle,
-                                        petitionReason,
-                                        signers: num,
-                                        date: date.split(', '),
-                                        signature,
-                                        name,
-                                    });
-                                });
-                        })
-                        .catch((err) =>
-                            console.log('error in getSignature', err)
-                        );
+                    return num;
                 }
             })
-            .catch((err) => console.log('error in get-signatures', err));
+            .then((num) => {
+                return db.getSignature([req.session.registerId]).then((sig) => {
+                    console.log(sig.rows);
+                    const { created_at, signature } = sig.rows[0];
+                    return { num, created_at, signature };
+                });
+            })
+            .then((userObj) => {
+                return db.getUserName([req.session.registerId]).then((data) => {
+                    const name = data.rows[0];
+                    userObj.name = name;
+                    return userObj;
+                });
+            })
+            .then((userObj) => {
+                const { num, created_at, signature, name } = userObj;
+                const date = new Date(created_at).toLocaleString('de-DE');
+                res.render('thanks', {
+                    title: 'Thank You!',
+                    headerTitle,
+                    petitionReason,
+                    signers: num,
+                    date: date.split(', '),
+                    signature,
+                    name,
+                    registered,
+                    signed,
+                });
+            })
+            .catch((err) => console.log('error in thanks', err));
     }
 });
 
 app.post('/petition', (req, res) => {
+    console.log('POST petition', req.session);
     const { signature } = req.body;
     const userId = req.session.registerId;
 
