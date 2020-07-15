@@ -31,7 +31,9 @@
             },
             500
         );
-        $('#cancelSignOut').on('click', () => {
+        $('#cancelSignOut').on('click', (e) => {
+            e.preventDefault();
+
             $('#logoutDropdown').animate(
                 {
                     top: '-200px',

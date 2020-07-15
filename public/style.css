@@ -74,7 +74,7 @@ header {
 }
 main {
     height: 100%;
-    margin: auto;
+    margin: 0px 0px;
     width: 100vw;
     height: 100%;
     overflow-y: scroll;
@@ -90,6 +90,7 @@ footer {
     color: var(--light-text);
     padding: 5px;
     font-family: 'manrope-xlight';
+    margin-top: -35px;
 }
 canvas {
     background-color: white;
@@ -122,6 +123,7 @@ canvas {
     display: flex;
     flex-direction: row;
     background-color: var(--primary);
+    width: 100%;
 }
 #landingTitle {
     margin: auto auto auto 1em;
@@ -150,10 +152,12 @@ canvas {
 .logoutLinkWrapper {
     height: 50px;
     display: flex;
+    flex-direction: column;
+
     z-index: 5;
 }
 .logoutLinkWrapper a {
-    margin: auto;
+    margin: auto auto 10px auto;
     z-index: 4;
 }
 .logoutDropDown {

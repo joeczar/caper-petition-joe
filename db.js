@@ -4,7 +4,10 @@ const db = spicedPg(
 );
 
 module.exports.getNames = () => {
-    let q = 'SELECT first, last, created_at FROM users';
+    let q = `SELECT users.first AS first, users.last AS last, signatures.created_at AS signed_on 
+    FROM users
+    JOIN signatures
+    ON users.id = signatures.user_id`;
     return db.query(q);
 };
 module.exports.getCount = () => {
@@ -17,7 +20,7 @@ module.exports.addSignature = (sigArr) => {
 };
 module.exports.getSignature = (params) => {
     return db.query(
-        `SELECT created_at, signature  FROM signatures WHERE user_id=$1`,
+        `SELECT id, created_at, signature  FROM signatures WHERE user_id=$1`,
         params
     );
 };

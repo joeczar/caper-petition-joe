@@ -5,7 +5,7 @@ const db = require('./db');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
 const { hash, compare } = require('./bc');
-const { headerTitle, petitionReason } = require('./petitionData');
+const { headerTitle, petitionReason, slides } = require('./petitionData');
 let registered, signed;
 
 app.use(
@@ -40,6 +40,7 @@ app.get('/', (req, res) => {
         title: 'Switch to OSS',
         headerTitle,
         petitionReason,
+        slides,
         registered,
         signed,
     });
@@ -47,6 +48,7 @@ app.get('/', (req, res) => {
 app.post('/logout', (req, res) => {
     console.log('logout', req.session);
     delete req.session['registerId'];
+    delete req.session['signatureId'];
     res.redirect('/');
 });
 app.get('/register', (req, res) => {
@@ -112,6 +114,7 @@ app.post('/login', (req, res) => {
 
     db.getUserLogin([emailInput])
         .then((data) => {
+            // console.log(data.rows[0]);
             const { id, hash } = data.rows[0];
             return compare(pwdInput, hash).then((data) => {
                 if (data) {
@@ -123,15 +126,25 @@ app.post('/login', (req, res) => {
             });
         })
         .then((id) => {
-            if (id) {
-                return db.getSignature([id]).then((data) => {
+            return db.getSignature([id]).then((data) => {
+                console.log('log in ////////////////////', data.rows[0]);
+                if (data.rows[0].id) {
                     req.session.signatureId = data.rows[0].id;
                     res.redirect('/thanks');
-                });
-            }
+                } else {
+                    res.redirect('/petition');
+                }
+            });
         })
         .catch((err) => {
             console.log('error getting user hash', err);
+            const error = "That email/password didn't work";
+            res.render('login', {
+                headerTitle,
+                registered,
+                signed,
+                error,
+            });
         });
 });
 app.get('/petition', (req, res) => {
@@ -156,11 +169,11 @@ app.get('/petition/signers', (req, res) => {
     console.log('petition/signers', req.session);
     db.getNames()
         .then((data) => {
-            let count = 0;
+            console.log(data.rows[0]);
+            let count = data.rows.length;
             const cleaned = data.rows.map((name) => {
-                let { first, last, created_at } = name;
-                const date = new Date(created_at).toLocaleString('de-DE');
-                count++;
+                let { first, last, signed_on } = name;
+                const date = new Date(signed_on).toLocaleDateString('de-DE');
 
                 return { first, last, date };
             });
@@ -195,9 +208,12 @@ app.get('/thanks', (req, res) => {
             })
             .then((num) => {
                 return db.getSignature([req.session.registerId]).then((sig) => {
-                    console.log(sig.rows);
-                    const { created_at, signature } = sig.rows[0];
-                    return { num, created_at, signature };
+                    if (sig.rows.length < 1) {
+                        res.redirect('/petition');
+                    } else {
+                        const { created_at, signature } = sig.rows[0];
+                        return { num, created_at, signature };
+                    }
                 });
             })
             .then((userObj) => {

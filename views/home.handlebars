@@ -1,6 +1,6 @@
 
-    <article  id='homeWrapper'>
-    {{>fsCard id='one' next='#two' headline='Are you using software with privacy issues at school or work?' link="https://www.forbes.com/sites/marleycoyne/2020/04/03/zooms-big-security-problems-summarized/" linkText='Zooms Security Problems'}}
-    {{>fsCard id='two' next='#three' headline='Are you worried about your privacy while using software your employer or school requires?' link='https://www.theguardian.com/technology/2020/apr/02/zoom-technology-security-coronavirus-video-conferencing' linkText="...security researchers have called Zoom “a privacy disaster” and “fundamentally corrupt” as allegations of the company mishandling user data snowball."}}
-    {{>fsCard id='three' next='#' headline='Are you unsure of what alternatives might exist, or what they might cost?' link='https://www.wired.com/story/zoom-jitsi-offers-open-source-alternative-zoom/' linkText='Want to Ditch Zoom? Jitsi Offers an Open-Source Alternative'}}
-    </article>
+<article  id='homeWrapper'>
+    {{#slides}}
+    {{>fsCard id=id next=next headline=headline link=url linkText=linkText}}
+    {{/slides}}
+</article>
