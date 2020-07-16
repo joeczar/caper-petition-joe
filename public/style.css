@@ -73,9 +73,9 @@ header {
     justify-content: right;
 }
 main {
-    margin: 0px 0px;
+    margin: 0px auto;
     width: 100vw;
-    min-height: calc(100vh -80px);
+
     overflow-y: scroll;
     padding: 2em 0em;
     -ms-overflow-style: none; /* IE and Edge */
@@ -264,7 +264,9 @@ figcaption {
 }
 /* fsCard */
 article {
+    margin: auto;
     scroll-behavior: smooth;
+    width: 100vw;
 }
 #homeWrapper::-webkit-scrollbar {
     display: none;
