@@ -265,7 +265,6 @@ figcaption {
 /* fsCard */
 article {
     margin: auto;
-    scroll-behavior: smooth;
     width: 100vw;
 }
 #homeWrapper::-webkit-scrollbar {
