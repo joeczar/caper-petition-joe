@@ -135,9 +135,14 @@ app.post(
         const age = req.body.age || null;
         const city = req.body.city || null;
         const url = req.body.url || null;
+        const params = [age, city, url, req.session.registerId];
 
-        const params = [age, city, url];
-        console.log(params);
+        if (params.some((elem) => elem !== null)) {
+            db.addUserProfile(params).then(() => {
+                req.redirect('/petition');
+            });
+        }
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.log(errors.array());
@@ -311,4 +316,6 @@ app.get('/thanks', (req, res) => {
 
 app.use(express.static('public'));
 
-app.listen(8081, () => console.log('Server running at http://localhost:8081'));
+app.listen(process.env.PORT || 8081, () =>
+    console.log('Server running at http://localhost:8081')
+);

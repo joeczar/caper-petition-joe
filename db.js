@@ -1,6 +1,7 @@
 const spicedPg = require('spiced-pg');
 const db = spicedPg(
-    'postgres:ripley:IfIhad1PostGres!@localhost:5432/caper-petition'
+    process.env.DATABASE_URL ||
+        'postgres:ripley:IfIhad1PostGres!@localhost:5432/caper-petition'
 );
 
 module.exports.getNames = () => {
@@ -34,4 +35,10 @@ module.exports.getUserName = (params) => {
 };
 module.exports.getUserLogin = (params) => {
     return db.query(`SELECT id, hash FROM users WHERE email=$1 `, params);
+};
+module.exports.addUserProfile = (params) => {
+    return db.query(
+        `INSERT INTO user_profiles (age, city, url, user_id) VALUES (1$, 2$, $3, $4)`,
+        params
+    );
 };
