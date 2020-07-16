@@ -1,7 +1,8 @@
 --  psql caper-petition -f sql/users.sql
 
 DROP TABLE IF EXISTS users CASCADE;
-
+DROP TABLE IF EXISTS signatures CASCADE;
+DROP TABLE IF EXISTS user_profiles CASCADE;
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
     first VARCHAR NOT NULL CHECK(first != ''),

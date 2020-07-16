@@ -82,7 +82,7 @@ app.post('/register', (req, res) => {
         })
         .then((data) => {
             req.session.registerId = data.rows[0].id;
-            res.redirect('/petition');
+            res.redirect('/profile');
         })
         .catch((err) => {
             console.log('error in register', err);
@@ -138,9 +138,13 @@ app.post(
         const params = [age, city, url, req.session.registerId];
 
         if (params.some((elem) => elem !== null)) {
-            db.addUserProfile(params).then(() => {
-                req.redirect('/petition');
-            });
+            db.addUserProfile(params)
+                .then(() => {
+                    res.redirect('/petition');
+                })
+                .catch((err) => {
+                    console.log('POST /profile error', err);
+                });
         }
 
         const errors = validationResult(req);
@@ -166,28 +170,24 @@ app.get('/login', (req, res) => {
 });
 app.post('/login', (req, res) => {
     console.log('POST login', req.session);
+
     const { emailInput, pwdInput } = req.body;
 
     db.getUserLogin([emailInput])
         .then((data) => {
-            // console.log(data.rows[0]);
-            const { id, hash } = data.rows[0];
+            console.log(data.rows[0]);
+            const { register_id, signature_id, hash } = data.rows[0];
             return compare(pwdInput, hash).then((data) => {
                 if (data) {
                     // set login cookie
-                    req.session.registerId = id;
+                    req.session.registerId = register_id;
+                    req.session.signatureId = signature_id;
                     // check if signed
-                    return id;
-                }
-            });
-        })
-        .then((id) => {
-            return db.getSignature([id]).then((data) => {
-                if (data.rows[0].id) {
-                    req.session.signatureId = data.rows[0].id;
-                    res.redirect('/thanks');
-                } else {
-                    res.redirect('/petition');
+                    if (!signature_id) {
+                        res.redirect('/petition');
+                    } else {
+                        res.redirect('/thanks');
+                    }
                 }
             });
         })
@@ -206,34 +206,51 @@ app.post('/login', (req, res) => {
 /////////////////////////  PETITION  ////////////////////////////////
 app.get('/petition', (req, res) => {
     console.log('petition', req.session);
-    if (req.session.signatureId) {
+    if (!req.session.registerId) {
+        res.redirect('/register');
+    } else if (req.session.signatureId) {
         res.redirect('/thanks');
     } else {
-        db.getUserName([req.session.registerId]).then((data) => {
-            const name = data.rows[0];
-            res.render('petitionPage', {
-                title: 'Petition',
-                headerTitle,
-                petitionReason,
-                name,
-                registered,
-                signed,
+        db.getUserName([req.session.registerId])
+            .then((data) => {
+                console.log('/petition - getUserName', data.rows);
+                res.render('petitionPage', {
+                    title: 'Petition',
+                    headerTitle,
+                    petitionReason,
+                    name: data.rows[0],
+                    registered,
+                    signed,
+                });
+            })
+            .catch((err) => {
+                console.log('GET /petition error', err);
             });
-        });
     }
+});
+app.post('/petition', (req, res) => {
+    console.log('POST petition', req.session);
+    const { signature } = req.body;
+    const userId = req.session.registerId;
+
+    db.addSignature([signature, userId])
+        .then((data) => {
+            req.session.signatureId = data.rows[0].id;
+            res.redirect('/thanks');
+        })
+        .catch((err) => console.log('error in add-signature', err));
 });
 //////////////////////////  SIGNERS  //////////////////////////
 app.get('/petition/signers', (req, res) => {
     console.log('petition/signers', req.session);
     db.getNames()
         .then((data) => {
-            console.log(data.rows[0]);
             let count = data.rows.length;
             const cleaned = data.rows.map((name) => {
-                let { first, last, signed_on } = name;
+                let { first, last, age, city, url, signed_on } = name;
                 const date = new Date(signed_on).toLocaleDateString('de-DE');
 
-                return { first, last, date };
+                return { first, last, age, city, url, date };
             });
             res.render('signersPage', {
                 title: 'Signers',
@@ -248,17 +265,24 @@ app.get('/petition/signers', (req, res) => {
             console.log('error in signers', err);
         });
 });
-app.post('/petition', (req, res) => {
-    console.log('POST petition', req.session);
-    const { signature } = req.body;
-    const userId = req.session.registerId;
+app.get('/petition/signers/:city', (req, res) => {
+    db.getNamesForCity([req.params.city]).then((data) => {
+        let count = data.rows.length;
+        const cleaned = data.rows.map((name) => {
+            let { first, last, age, city, url, signed_on } = name;
+            const date = new Date(signed_on).toLocaleDateString('de-DE');
 
-    db.addSignature([signature, userId])
-        .then((data) => {
-            req.session.signatureId = data.rows[0].id;
-            res.redirect('/thanks');
-        })
-        .catch((err) => console.log('error in add-signature', err));
+            return { first, last, age, city, url, date };
+        });
+        res.render('signersPage', {
+            title: 'Signers',
+            headerTitle,
+            signatures: cleaned,
+            count,
+            registered,
+            signed,
+        });
+    });
 });
 
 ///////////////////  THANKS  /////////////////////////
@@ -272,6 +296,7 @@ app.get('/thanks', (req, res) => {
         db.getCount()
             .then((count) => {
                 const num = count.rows[0].count;
+                console.log(count.rows[0]);
                 if (num === '0') {
                     res.redirect('/petition');
                 } else {
@@ -316,6 +341,6 @@ app.get('/thanks', (req, res) => {
 
 app.use(express.static('public'));
 
-app.listen(process.env.PORT || 8081, () =>
-    console.log('Server running at http://localhost:8081')
+app.listen(process.env.PORT || 8080, () =>
+    console.log('Server running at http://localhost:8080')
 );

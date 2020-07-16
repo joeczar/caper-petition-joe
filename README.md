@@ -172,65 +172,65 @@ Part one has three pages
 
 1. Routes
 
-    - `GET /profile`
+    - ✔️ `GET /profile`
 
-        - redirect here immediately after registrations
+        - ✔️ redirect here immediately after registrations
 
-        - render new profile template
+        - ✔️ render new profile template
 
     - `POST /profile`
 
-        - if the user submitted a url, a city, an age or any combination of these three, insert into the user_profiles table
+        - ✔️ if the user submitted a url, a city, an age or any combination of these three, insert into the user_profiles table
 
-        - redirect to /petition upon success
+        - ✔️ redirect to /petition upon success
 
-            -easiest way to deal with javascript: urls, is before doing the insert confirm the url does start with either "https://", "http://", or "//".
+            - ✔️ easiest way to deal with javascript: urls, is before doing the insert confirm the url does start with either "https://", "http://", or "//".
 
-            - If the url doesn't start with one of those good things, you can either throw the url away or prepend "http://"
+            - ✔️ If the url doesn't start with one of those good things, you can either throw the url away or prepend "http://"
 
-    - `GET /signers/:city`
+    - ✔️ `GET /signers/:city`
 
-        - passes req.params.city to a query to get the signers by city
+        - ✔️ passes req.params.city to a query to get the signers by city
 
-        - can use the existing signers template
+        - ✔️ can use the existing signers template
 
-    - `POST /login`
+    - ✔️ `POST /login`
         - Change so that it no longer does a different query to get the signature id. Instead, it gets the signature id from the same query that gives the user id and password
 
-2. Templates
+2. ✔️ Templates
 
-    - profile.handlebars
+    - ✔️ profile.handlebars
 
-        - form with fields for age, city, url
+        - ✔️ form with fields for age, city, url
 
-    - signers.handlebars
-        - change to link first and last name if there is a url and show age and city if there are age and city
+    - ✔️ signers.handlebars
+        - ✔️ change to link first and last name if there is a url and show age and city if there are age and city
 
 3. Queries
 
-    - INSERT for new user_profiles table
+    - ✔️ INSERT for new user_profiles table
 
-    - A new SELECT for getting the signers
+    - ✔️ A new SELECT for getting the signers
 
-        - first and last name from the user table
+        - ✔️ first and last name from the user table
 
-        - age, city, and url from the user_profiles table
+        - ✔️ age, city, and url from the user_profiles table
 
-        - use the signatures table to limit whose data we show (we only want to show data for users whose ids are in the signatures table
+        - ✔️ use the signatures table to limit whose data we show (we only want to show data for users whose ids are in the signatures table
 
-    - A new SELECT that gets signers by city
+    - ✔️ A new SELECT that gets signers by city
 
-        - identical to the query above but with an additional WHERE clause
+        - ✔️ identical to the query above but with an additional WHERE clause
 
-        - Deal with cases: WHERE LOWER(city) = LOWER(\$1)
+        - ✔️ Deal with cases: WHERE LOWER(city) = LOWER(\$1)
 
-    - Change the SELECT that gets user id and password by email address to join the signatures table and get the signature id as well
+    - ✔️ Change the SELECT that gets user id and password by email address to join the signatures table and get the signature id as well
 
-    - Delete the SELECT signature id by user id because it is no longer needed
+    - ✔️ Delete the SELECT signature id by user id because it is no longer needed
 
-4. Tables
+4. ✔️ Tables
 
-    - New user_profiles table
+    - ✔️ New user_profiles table
 
     ```
     CREATE TABLE user_profiles(
