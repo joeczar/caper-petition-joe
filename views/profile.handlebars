@@ -1,0 +1,14 @@
+<div class="formWrapper shadow-3">
+    <header class="formHeader shadow-3">
+    <h2>Update your profile.</h2>
+</header>
+    <form class="form" id="profile" name="profile" action='/profile' method='POST'>
+        {{>error}}
+        {{>numInput id='age' label='Age'}}
+        {{>nameInput id='city' label='City' placeholder='Berlin'}}
+        {{>urlInput id='url' label='Website'}}
+        {{>submitBtn id='skip' text="Skip"}}
+        {{>submitBtn id='submit' text="Update"}}
+        {{>csrf}}
+    </form>
+</div>

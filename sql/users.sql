@@ -10,3 +10,18 @@ CREATE TABLE users(
     hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE user_profiles(
+    id SERIAL PRIMARY KEY,
+    age INT,
+    city VARCHAR,
+    url VARCHAR,
+    user_id INT NOT NULL UNIQUE REFERENCES users(id)
+);
+
+CREATE TABLE signatures(
+    id SERIAL PRIMARY KEY,
+    signature TEXT NOT NULL CHECK(signature != ''),
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

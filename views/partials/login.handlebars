@@ -9,7 +9,7 @@
     <div id="logoutDropdown" class="logoutDropDown shadow-5">
         <h3>Are you sure you want to Sign out?</h3>
         <form id="logoutForm" name="logout" action='/logout' method='POST'>
-        <button class="btn" id="cancelSignOut">cancel</button>
+        {{>submitBtn id="cancelSignOut" text='cancel'}}
         {{>submitBtn id="logoutBtn" text='Log out'}}
         {{>csrf}}
         </form>

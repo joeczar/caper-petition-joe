@@ -1,4 +1,5 @@
 const express = require('express');
+const { check, validationResult } = require('express-validator');
 const hb = require('express-handlebars');
 const app = express();
 const db = require('./db');
@@ -33,6 +34,8 @@ app.use((req, res, next) => {
     signed = req.session.signatureId ? true : false;
     next();
 });
+
+/////////////////////  ROUTES  //////////////////////
 app.get('/', (req, res) => {
     console.log('/', req.session);
     res.render('home', {
@@ -47,10 +50,10 @@ app.get('/', (req, res) => {
 });
 app.post('/logout', (req, res) => {
     console.log('logout', req.session);
-    delete req.session['registerId'];
-    delete req.session['signatureId'];
+    req.session = null;
     res.redirect('/');
 });
+/////////////////// REGISTER ///////////////////////
 app.get('/register', (req, res) => {
     console.log('register', req.session);
     if (req.session.registerId) {
@@ -100,6 +103,54 @@ app.post('/register', (req, res) => {
         });
     // req.body.password
 });
+//////////////////////  PROFILE  //////////////////////
+app.get('/profile', (req, res) => {
+    console.log('profile', req.session);
+    res.render('profile', {
+        headerTitle,
+        registered,
+        signed,
+    });
+});
+app.post(
+    '/profile',
+    [
+        check('url')
+            .optional({ nullable: true, checkFalsy: true })
+            .isURL()
+            .withMessage('Must be a valid URL.'),
+        check('city')
+            .optional({ nullable: true, checkFalsy: true })
+            .isLength({ min: 1 })
+            .withMessage("Are you sure you don't want to enter a City?")
+            .isAlpha()
+            .withMessage('City can only contain letters.'),
+        check('age')
+            .optional({ nullable: true, checkFalsy: true })
+            .isNumeric()
+            .withMessage('Age must be a number'),
+    ],
+    (req, res) => {
+        console.log(req.body);
+        const age = req.body.age || null;
+        const city = req.body.city || null;
+        const url = req.body.url || null;
+
+        const params = [age, city, url];
+        console.log(params);
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.log(errors.array());
+            res.render('profile', {
+                headerTitle,
+                registered,
+                signed,
+                errors: errors.array(),
+            });
+        }
+    }
+);
+//////////////////////  LOGIN  //////////////////////////
 app.get('/login', (req, res) => {
     console.log('login', req.session);
     res.render('login', {
@@ -127,7 +178,6 @@ app.post('/login', (req, res) => {
         })
         .then((id) => {
             return db.getSignature([id]).then((data) => {
-                console.log('log in ////////////////////', data.rows[0]);
                 if (data.rows[0].id) {
                     req.session.signatureId = data.rows[0].id;
                     res.redirect('/thanks');
@@ -147,6 +197,8 @@ app.post('/login', (req, res) => {
             });
         });
 });
+
+/////////////////////////  PETITION  ////////////////////////////////
 app.get('/petition', (req, res) => {
     console.log('petition', req.session);
     if (req.session.signatureId) {
@@ -165,6 +217,7 @@ app.get('/petition', (req, res) => {
         });
     }
 });
+//////////////////////////  SIGNERS  //////////////////////////
 app.get('/petition/signers', (req, res) => {
     console.log('petition/signers', req.session);
     db.getNames()
@@ -190,6 +243,20 @@ app.get('/petition/signers', (req, res) => {
             console.log('error in signers', err);
         });
 });
+app.post('/petition', (req, res) => {
+    console.log('POST petition', req.session);
+    const { signature } = req.body;
+    const userId = req.session.registerId;
+
+    db.addSignature([signature, userId])
+        .then((data) => {
+            req.session.signatureId = data.rows[0].id;
+            res.redirect('/thanks');
+        })
+        .catch((err) => console.log('error in add-signature', err));
+});
+
+///////////////////  THANKS  /////////////////////////
 app.get('/thanks', (req, res) => {
     console.log('thanks', req.session);
     if (!req.session.registerId) {
@@ -242,18 +309,6 @@ app.get('/thanks', (req, res) => {
     }
 });
 
-app.post('/petition', (req, res) => {
-    console.log('POST petition', req.session);
-    const { signature } = req.body;
-    const userId = req.session.registerId;
-
-    db.addSignature([signature, userId])
-        .then((data) => {
-            req.session.signatureId = data.rows[0].id;
-            res.redirect('/thanks');
-        })
-        .catch((err) => console.log('error in add-signature', err));
-});
 app.use(express.static('public'));
 
 app.listen(8081, () => console.log('Server running at http://localhost:8081'));

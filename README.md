@@ -111,7 +111,7 @@ Part one has three pages
         -   ✔️ hash the password that the user typed and THEN
             insert a row in the USERS table (new table) -> see 3. for table structure
         -   ✔️ if the insert is successful, add `userId` in a cookie (value should be the id created by postgres when the row was inserted).
-        -   if insert fails, re-render template with an error message
+        -   ✔️ if insert fails, re-render template with an error message
 
     -   ✔️ `GET /login`
 
@@ -121,7 +121,7 @@ Part one has three pages
         -   ✔️ pass the hashed password to `COMPARE` along with the password the user typed in the input field
         -   ✔️ if they match, `COMPARE` returns a boolean value of true
         -   ✔️ store the userId in a cookie
-            -   OPTIONAL: do a db query to find out if they've signed
+            -   ✔️ OPTIONAL: do a db query to find out if they've signed
                 -   if yes, you want to put their sigId in a cookie & redirect to `/thanks`
                 -   if not, redirect to `/petition`
                     if they don't match, `COMPARE` returns a boolean value of false & re-render with an error message
@@ -169,3 +169,77 @@ Part one has three pages
     -   ✔️ `SELECT` from signature to find out if they've signed (`post /login`)
 
 ## Part 4 Profile
+
+1. Routes
+
+    - `GET /profile`
+
+        - redirect here immediately after registrations
+
+        - render new profile template
+
+    - `POST /profile`
+
+        - if the user submitted a url, a city, an age or any combination of these three, insert into the user_profiles table
+
+        - redirect to /petition upon success
+
+            -easiest way to deal with javascript: urls, is before doing the insert confirm the url does start with either "https://", "http://", or "//".
+
+            - If the url doesn't start with one of those good things, you can either throw the url away or prepend "http://"
+
+    - `GET /signers/:city`
+
+        - passes req.params.city to a query to get the signers by city
+
+        - can use the existing signers template
+
+    - `POST /login`
+        - Change so that it no longer does a different query to get the signature id. Instead, it gets the signature id from the same query that gives the user id and password
+
+2. Templates
+
+    - profile.handlebars
+
+        - form with fields for age, city, url
+
+    - signers.handlebars
+        - change to link first and last name if there is a url and show age and city if there are age and city
+
+3. Queries
+
+    - INSERT for new user_profiles table
+
+    - A new SELECT for getting the signers
+
+        - first and last name from the user table
+
+        - age, city, and url from the user_profiles table
+
+        - use the signatures table to limit whose data we show (we only want to show data for users whose ids are in the signatures table
+
+    - A new SELECT that gets signers by city
+
+        - identical to the query above but with an additional WHERE clause
+
+        - Deal with cases: WHERE LOWER(city) = LOWER(\$1)
+
+    - Change the SELECT that gets user id and password by email address to join the signatures table and get the signature id as well
+
+    - Delete the SELECT signature id by user id because it is no longer needed
+
+4. Tables
+
+    - New user_profiles table
+
+    ```
+    CREATE TABLE user_profiles(
+        id SERIAL PRIMARY KEY,
+        age INT,
+        city VARCHAR,
+        url VARCHAR,
+        user_id INT NOT NULL UNIQUE REFERENCES users(id)
+    );
+    ```
+
+    - ✔️ Drop the signatures table and recreate it without first and last names
