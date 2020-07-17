@@ -1,0 +1,15 @@
+<header class="formHeader shadow-3">
+        <h2>Edit your profile.</h2>
+    </header>
+    <form class="form" id="profile" name="profile" action='/profile' method='POST'>
+        {{>error}}
+        {{>nameInput id='firstName-R' label='First name:' placeholder='Shanon'}}
+        {{>nameInput id='lastName-R' label='Last Name' placeholder='Oleary'}}
+        {{>emailInput id='emailInput-R' label='E-Mail' placeholder='stan@getz.org'}}
+        {{>numInput id='age-R' label='Age'}}
+        {{>nameInput id='city-R' label='City' placeholder='Berlin'}}
+        {{>urlInput id='url-R' label='Website'}}
+
+        {{>submitBtn id='submit' text="Update"}}
+        {{>csrf}}sss
+    </form>

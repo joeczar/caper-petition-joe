@@ -1,0 +1,19 @@
+<div class="container" id="showProfile">
+    <h1>{{usrData.first_name.val}}'s Profile</h1>
+    {{>message}}
+    <table class="profileTable">
+    {{#each usrData}}
+    <tr>
+        <td class="t-label">{{#if url}}
+    {{label}}</td><td class="t-value"><a href='{{val}}'>{{val}}</a></td>
+    </tr>
+    
+    {{else}}
+    <tr>
+        <td class="t-label">{{label}}</td><td class="t-value">{{val}}</td>
+    </tr>
+    {{/if}}
+    {{/each}}
+    </table>
+    <a href='/profile/edit'>{{>submitBtn text='Update Profile'}}</a>
+</div>

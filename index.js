@@ -7,7 +7,7 @@ const cookieSession = require('cookie-session');
 const csurf = require('csurf');
 const { hash, compare } = require('./bc');
 const { headerTitle, petitionReason, slides } = require('./petitionData');
-let registered, signed;
+let registered, signed, profile;
 
 app.use(
     cookieSession({
@@ -32,6 +32,7 @@ app.use(function (req, res, next) {
 app.use((req, res, next) => {
     registered = req.session.registerId ? true : false;
     signed = req.session.signatureId ? true : false;
+    profile = req.session.profileId ? true : false;
     next();
 });
 
@@ -52,6 +53,43 @@ app.post('/logout', (req, res) => {
     console.log('logout', req.session);
     req.session = null;
     res.redirect('/');
+});
+app.get('/updatePassword', (req, res) => {
+    res.render('updatePassword', {
+        title: 'Change Password',
+    });
+});
+app.post('/updatePassword', (req, res) => {
+    const { current, newPwd, repeatPwd } = req.body;
+    console.log(req.body, newPwd, repeatPwd);
+    db.getHash([req.session.registerId])
+        .then((data) => {
+            const { hash } = data.rows[0];
+            return compare(current, hash);
+        })
+        .then((correct) => {
+            if (correct === false) {
+                res.render('updatePassword', {
+                    title: 'Change Password',
+                    errors: ['Current password incorrect'],
+                });
+            } else if (newPwd != repeatPwd) {
+                res.render('updatePassword', {
+                    title: 'Change Password',
+                    errors: ["New passwords don't match"],
+                });
+            } else {
+                hash(repeatPwd).then((hashed) => {
+                    console.log(hashed);
+                    db.updateHash([req.session.registerId, hashed]).then(() => {
+                        res.redirect('/profile');
+                    });
+                });
+            }
+        })
+        .then(() => {})
+        .catch((err) => console.log('Error in updateHash', err));
+    // return compare(pwdInput, hash);
 });
 /////////////////// REGISTER ///////////////////////
 app.get('/register', (req, res) => {
@@ -106,11 +144,48 @@ app.post('/register', (req, res) => {
 //////////////////////  PROFILE  //////////////////////
 app.get('/profile', (req, res) => {
     console.log('profile', req.session);
-    res.render('profile', {
-        headerTitle,
-        registered,
-        signed,
-    });
+    if (profile) {
+        db.getUserProfile([req.session.registerId])
+            .then((data) => {
+                const usrData = data.rows[0];
+                const usrObj = {};
+                for (let key in usrData) {
+                    if (key !== 'profile_id') {
+                        const label = key
+                            .split('_')
+                            .map(
+                                (el) => el.charAt(0).toUpperCase() + el.slice(1)
+                            )
+                            .join(' ');
+                        //if key is url add url: true to obj
+                        key === 'homepage'
+                            ? (usrObj[key] = {
+                                  label,
+                                  val: usrData[key],
+                                  url: true,
+                              })
+                            : (usrObj[key] = { label, val: usrData[key] });
+                    }
+                }
+                return usrObj;
+            })
+            .then((usrData) => {
+                res.render('profile', {
+                    headerTitle,
+                    registered,
+                    signed,
+                    profile,
+                    usrData,
+                });
+            });
+    } else {
+        res.render('profile', {
+            headerTitle,
+            registered,
+            signed,
+            profile,
+        });
+    }
 });
 app.post(
     '/profile',
@@ -131,15 +206,14 @@ app.post(
             .withMessage('Age must be a number'),
     ],
     (req, res) => {
-        console.log(req.body);
-        const age = req.body.age || null;
-        const city = req.body.city || null;
-        const url = req.body.url || null;
+        const { age, city, url } = req.body;
+
         const params = [age, city, url, req.session.registerId];
 
         if (params.some((elem) => elem !== null)) {
             db.addUserProfile(params)
-                .then(() => {
+                .then((data) => {
+                    req.session.profileId = data.rows[0].id;
                     res.redirect('/petition');
                 })
                 .catch((err) => {
@@ -156,6 +230,96 @@ app.post(
                 signed,
                 errors: errors.array(),
             });
+        }
+    }
+);
+app.get('/profile/edit', (req, res) => {
+    console.log('profile/edit', req.session);
+
+    db.getUserProfile([req.session.registerId])
+        .then((data) => {
+            return data.rows[0];
+        })
+        .then((usrData) => {
+            res.render('editProfile', {
+                headerTitle,
+                registered,
+                signed,
+                profile,
+                usrData,
+            });
+        });
+});
+app.post(
+    '/profile/edit',
+    [
+        check('first')
+            .optional({ nullable: true, checkFalsy: true })
+            .isLength({ min: 1 })
+            .isAlpha()
+            .withMessage('First name can only contain letters.'),
+        check('last')
+            .optional({ nullable: true, checkFalsy: true })
+            .isLength({ min: 1 })
+            .isAlpha()
+            .withMessage('Last name can only contain letters.'),
+        check('email')
+            .isEmail()
+            .withMessage('Must be a valid email.')
+            .optional({ nullable: true, checkFalsy: true }),
+        check('password').isLength({ min: 8 }),
+        check('homepage')
+            .optional({ nullable: true, checkFalsy: true })
+            .isURL()
+            .withMessage('Must be a valid URL.'),
+        check('city')
+            .optional({ nullable: true, checkFalsy: true })
+            .isLength({ min: 1 })
+            .withMessage("Are you sure you don't want to enter a City?")
+            .isAlpha()
+            .withMessage('City can only contain letters.'),
+        check('age')
+            .optional({ nullable: true, checkFalsy: true })
+            .isNumeric()
+            .withMessage('Age must be a number'),
+    ],
+    (req, res) => {
+        console.log('POST profile/edit', req.session);
+        console.log(req.body);
+        const { first, last, email, age, city, homepage } = req.body;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.log(errors.array());
+            res.render('editProfile', {
+                headerTitle,
+                registered,
+                signed,
+                usrData: {
+                    first_name: first,
+                    last_name: last,
+                    email,
+                    age,
+                    city,
+                    homepage,
+                },
+                errors: errors.array(),
+            });
+        } else {
+            db.updateUser([req.session.registerId, first, last, email])
+                .then(() => {
+                    db.updateUserProfile([
+                        req.session.registerId,
+                        age,
+                        city,
+                        homepage,
+                    ]);
+                })
+                .then(() => {
+                    res.redirect('/profile');
+                })
+                .catch((err) => {
+                    console.log('error in updateUser ', err);
+                });
         }
     }
 );
@@ -176,12 +340,21 @@ app.post('/login', (req, res) => {
     db.getUserLogin([emailInput])
         .then((data) => {
             console.log(data.rows[0]);
-            const { register_id, signature_id, hash } = data.rows[0];
+            const {
+                register_id,
+                first,
+                last,
+                signature_id,
+                profile_id,
+                hash,
+            } = data.rows[0];
             return compare(pwdInput, hash).then((data) => {
                 if (data) {
                     // set login cookie
                     req.session.registerId = register_id;
                     req.session.signatureId = signature_id;
+                    req.session.profileId = profile_id;
+                    req.session.name = { first, last };
                     // check if signed
                     if (!signature_id) {
                         res.redirect('/petition');

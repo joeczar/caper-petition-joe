@@ -23,8 +23,8 @@
             }
         });
     });
-
-    $('#logoutLink').on('click', (e) => {
+    /////////////  LOGOUT HANDLER  ///////////////////
+    $('#logoutLink').on('click', () => {
         $('#logoutDropdown').animate(
             {
                 top: '0px',
@@ -45,4 +45,5 @@
             console.log('Logout');
         });
     });
+    ///////////////////////  CHANGE PASSWORD HANDLER  ///////////////
 })();
