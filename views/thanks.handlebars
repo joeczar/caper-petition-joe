@@ -5,6 +5,10 @@
         <figure class="signature-card shadow-2">
             <img src={{signature}} style="background-color: white;" class='shadow-2'/>
             <figcaption class='shadow-2'>{{name.first}} {{name.last}} signed this petition on {{date.[0]}} at {{date.[1]}}</figcaption>
+            <form id="deleteSig" action='/signature/delete' method='POST'>
+            {{>submitBtn id="deleteSigBtn" text="Delete Signature"}}
+            {{>csrf}}
+        </form>
         </figure>
         
     </div>

@@ -37,6 +37,10 @@ module.exports.getSignature = (params) => {
         params
     );
 };
+module.exports.deleteSignature = (params) => {
+    const q = `DELETE FROM signatures WHERE user_id=$1`;
+    return db.query(q, params);
+};
 module.exports.addUser = (params) => {
     const q = `INSERT INTO users (first, last, email, hash) VALUES ($1, $2, $3, $4) RETURNING id`;
     return db.query(q, params);

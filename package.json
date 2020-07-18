@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "jest",
+        "test": "jest 'test/app.test.js'",
         "start": "node index.js"
     },
     "engines": {

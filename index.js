@@ -9,6 +9,8 @@ const { hash, compare } = require('./bc');
 const { headerTitle, petitionReason, slides } = require('./petitionData');
 let registered, signed, profile;
 
+module.exports.app = app;
+
 app.use(
     cookieSession({
         secret: `I'm a cookie`,
@@ -305,15 +307,19 @@ app.post(
                 errors: errors.array(),
             });
         } else {
-            db.updateUser([req.session.registerId, first, last, email])
-                .then(() => {
-                    db.updateUserProfile([
-                        req.session.registerId,
-                        age,
-                        city,
-                        homepage,
-                    ]);
-                })
+            const updtUser = db.updateUser([
+                req.session.registerId,
+                first,
+                last,
+                email,
+            ]);
+            const updtProfile = db.updateUserProfile([
+                req.session.registerId,
+                age,
+                city,
+                homepage,
+            ]);
+            Promise.all([updtUser, updtProfile])
                 .then(() => {
                     res.redirect('/profile');
                 })
@@ -326,11 +332,15 @@ app.post(
 //////////////////////  LOGIN  //////////////////////////
 app.get('/login', (req, res) => {
     console.log('login', req.session);
-    res.render('login', {
-        headerTitle,
-        registered,
-        signed,
-    });
+    if (req.session.registerId) {
+        res.redirect('/petition');
+    } else {
+        res.render('login', {
+            headerTitle,
+            registered,
+            signed,
+        });
+    }
 });
 app.post('/login', (req, res) => {
     console.log('POST login', req.session);
@@ -361,17 +371,25 @@ app.post('/login', (req, res) => {
                     } else {
                         res.redirect('/thanks');
                     }
+                } else {
+                    const errors = ["That email/password didn't work"];
+                    res.render('login', {
+                        headerTitle,
+                        registered,
+                        signed,
+                        errors,
+                    });
                 }
             });
         })
         .catch((err) => {
             console.log('error getting user hash', err);
-            const error = "That email/password didn't work";
+            const errors = ["That email/password didn't work"];
             res.render('login', {
                 headerTitle,
                 registered,
                 signed,
-                error,
+                errors,
             });
         });
 });
@@ -402,16 +420,20 @@ app.get('/petition', (req, res) => {
     }
 });
 app.post('/petition', (req, res) => {
-    console.log('POST petition', req.session);
-    const { signature } = req.body;
-    const userId = req.session.registerId;
+    if (req.session.signatureId) {
+        res.redirect('/thanks');
+    } else {
+        console.log('POST petition', req.session);
+        const { signature } = req.body;
+        const userId = req.session.registerId;
 
-    db.addSignature([signature, userId])
-        .then((data) => {
-            req.session.signatureId = data.rows[0].id;
-            res.redirect('/thanks');
-        })
-        .catch((err) => console.log('error in add-signature', err));
+        db.addSignature([signature, userId])
+            .then((data) => {
+                req.session.signatureId = data.rows[0].id;
+                res.redirect('/thanks');
+            })
+            .catch((err) => console.log('error in add-signature', err));
+    }
 });
 //////////////////////////  SIGNERS  //////////////////////////
 app.get('/petition/signers', (req, res) => {
@@ -511,9 +533,25 @@ app.get('/thanks', (req, res) => {
             .catch((err) => console.log('error in thanks', err));
     }
 });
+app.post('/signature/delete', (req, res) => {
+    db.deleteSignature([req.session.registerId])
+        .then(() => {
+            delete req.session['signatureId'];
+            res.redirect('/petition');
+        })
+        .catch((err) => {
+            console.log('Error deleting signature', err);
+        });
+});
 
 app.use(express.static('public'));
 
-app.listen(process.env.PORT || 8080, () =>
-    console.log('Server running at http://localhost:8080')
-);
+// app.listen(process.env.PORT || 8080, () =>
+//     console.log('My Petition server running at 8080')
+// );
+
+if (require.main === module) {
+    app.listen(process.env.PORT || 8080, () =>
+        console.log('My Petition server running at 8080')
+    );
+}

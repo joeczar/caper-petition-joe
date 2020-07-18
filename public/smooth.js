@@ -45,5 +45,15 @@
             console.log('Logout');
         });
     });
-    ///////////////////////  CHANGE PASSWORD HANDLER  ///////////////
+
+    /////////////////  DELETE SIGNATURE HANDLER //////////////////
+    $('#deleteSigBtn').on('click', (e) => {
+        e.preventDefault();
+        const result = window.confirm(
+            'Are you sure you want to delete your signature?'
+        );
+        if (result) {
+            $('#deleteSig').submit();
+        }
+    });
 })();

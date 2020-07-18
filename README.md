@@ -253,26 +253,26 @@ Part one has three pages
     - ✔️ `UPDATE` of the users table
 
         - ✔️ if the user has not provided a new password, just `update` the first, last, and email columns
-        - if the user has provided a new password, `hash` the password they provided and `update` first, last, email, and password column
+        - ✔️ if the user has provided a new password, `hash` the password they provided and `update` first, last, email, and password column
 
-    - "Upsert" for the user_profiles table
+    - ✔️ "Upsert" for the user_profiles table
       attempt to insert a new row but if there's a conflict because a row with the user's id already exists, do the update of that row
 
-    - BONUS: use `Promise.all` to update users and user-profiles at the same time
+    - ✔️ BONUS: use `Promise.all` to update users and user-profiles at the same time
 
-    - DELETE for signature
+    - ✔️ DELETE for signature
 
-2. Routes
+2. ✔️ Routes
 
-    - `GET /profile/edit`
-    - `POST /profile/edit`
-    - `POST /signature/delete`
+    - ✔️ `GET /profile/edit`
+    - ✔️ `POST /profile/edit`
+    - ✔️ `POST /signature/delete`
 
-3. Templates
+3. ✔️ Templates
 
-    - edit `profile.handlebars`
+    - ✔️ edit `profile.handlebars`
 
-    - at least one of your templates will have to be modified to have a form for deleting the signature
+    - ✔️ at least one of your templates will have to be modified to have a form for deleting the signature
 
     ```
     <form action="/signature/delete" method="POST">
