@@ -8,8 +8,12 @@
         {{>numInput id='age' label='Age'}}
         {{>nameInput id='city' label='City' placeholder='Berlin'}}
         {{>urlInput id='url' label='Website'}}
-        {{>submitBtn id='skip' text="Skip"}}
+        
         {{>submitBtn id='submit' text="Update"}}
+        <div id="skipWrapper" class="inputWrapper">
+            <a href="/petition">Skip</a>
+        </div>
+        
         {{>csrf}}
     </form>
 </div>

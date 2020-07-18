@@ -51,7 +51,7 @@ test('Logged in & !signed users redirected to petition from thanks', () => {
             expect(res.statusCode).toBe(302);
         });
 });
-test('Logged in & !signed users redirected to petition from tPOST /petition', () => {
+test('Logged in & !signed users redirected to petition from POST /petition', () => {
     cookieSession.mockSessionOnce({ registerId: 66, signatureId: 66 });
     return supertest(app)
         .post('/petition')

@@ -1,5 +1,4 @@
 const express = require('express');
-const { check, validationResult } = require('express-validator');
 const hb = require('express-handlebars');
 const app = express();
 const db = require('./db');
@@ -7,6 +6,14 @@ const cookieSession = require('cookie-session');
 const csurf = require('csurf');
 const { hash, compare } = require('./bc');
 const { headerTitle, petitionReason, slides } = require('./petitionData');
+const { check, validationResult } = require('express-validator');
+const {
+    passwordValidation,
+    registerValidate,
+    profileValidate,
+    editProfileValidate,
+    validate,
+} = require('./validatorRules');
 let registered, signed, profile;
 
 module.exports.app = app;
@@ -61,9 +68,10 @@ app.get('/updatePassword', (req, res) => {
         title: 'Change Password',
     });
 });
-app.post('/updatePassword', (req, res) => {
+
+app.post('/updatePassword', passwordValidation(), (req, res) => {
     const { current, newPwd, repeatPwd } = req.body;
-    console.log(req.body, newPwd, repeatPwd);
+    const errors = [...validate(req)];
     db.getHash([req.session.registerId])
         .then((data) => {
             const { hash } = data.rows[0];
@@ -71,18 +79,19 @@ app.post('/updatePassword', (req, res) => {
         })
         .then((correct) => {
             if (correct === false) {
+                errors.push('Current password incorrect');
+            }
+            if (newPwd != repeatPwd) {
+                errors.push("New passwords don't match");
+            }
+            if (errors.length > 0) {
+                console.log(errors);
                 res.render('updatePassword', {
                     title: 'Change Password',
-                    errors: ['Current password incorrect'],
-                });
-            } else if (newPwd != repeatPwd) {
-                res.render('updatePassword', {
-                    title: 'Change Password',
-                    errors: ["New passwords don't match"],
+                    errors,
                 });
             } else {
-                hash(repeatPwd).then((hashed) => {
-                    console.log(hashed);
+                hash(newPwd).then((hashed) => {
                     db.updateHash([req.session.registerId, hashed]).then(() => {
                         res.redirect('/profile');
                     });
@@ -108,14 +117,26 @@ app.get('/register', (req, res) => {
         });
     }
 });
-app.post('/register', (req, res) => {
+app.post('/register', registerValidate(), (req, res) => {
     // use hash here
     console.log('POST register', req.session);
+    const errors = [...validate(req)];
     hash(req.body.pwdInput)
         .then((hashed) => {
             const { firstName, lastName, emailInput } = req.body;
             const usrArr = [firstName, lastName, emailInput, hashed];
-            return usrArr;
+
+            if (errors.length > 0) {
+                return res.render('register', {
+                    title: 'Register',
+                    headerTitle,
+                    errors,
+                    registered,
+                    signed,
+                });
+            } else {
+                return usrArr;
+            }
         })
         .then((data) => {
             return db.addUser(data);
@@ -128,15 +149,16 @@ app.post('/register', (req, res) => {
             console.log('error in register', err);
             let error;
             if (err.detail.includes('already exists')) {
-                error =
-                    'That email is already in use. Would you like to log in?';
+                errors.push(
+                    'That email is already in use. Would you like to log in?'
+                );
             } else {
-                error = 'Something went wrong, please try again.';
+                errors.push('Something went wrong, please try again.');
             }
             res.render('register', {
                 title: 'Register',
                 headerTitle,
-                error,
+                errors,
                 registered,
                 signed,
             });
@@ -189,52 +211,32 @@ app.get('/profile', (req, res) => {
         });
     }
 });
-app.post(
-    '/profile',
-    [
-        check('url')
-            .optional({ nullable: true, checkFalsy: true })
-            .isURL()
-            .withMessage('Must be a valid URL.'),
-        check('city')
-            .optional({ nullable: true, checkFalsy: true })
-            .isLength({ min: 1 })
-            .withMessage("Are you sure you don't want to enter a City?")
-            .isAlpha()
-            .withMessage('City can only contain letters.'),
-        check('age')
-            .optional({ nullable: true, checkFalsy: true })
-            .isNumeric()
-            .withMessage('Age must be a number'),
-    ],
-    (req, res) => {
-        const { age, city, url } = req.body;
+app.post('/profile', profileValidate(), (req, res) => {
+    const { age, city, url } = req.body;
+    const params = [age, city, url, req.session.registerId];
+    const errors = [...validate(req)];
 
-        const params = [age, city, url, req.session.registerId];
-
-        if (params.some((elem) => elem !== null)) {
-            db.addUserProfile(params)
-                .then((data) => {
-                    req.session.profileId = data.rows[0].id;
-                    res.redirect('/petition');
-                })
-                .catch((err) => {
-                    console.log('POST /profile error', err);
-                });
-        }
-
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log(errors.array());
-            res.render('profile', {
-                headerTitle,
-                registered,
-                signed,
-                errors: errors.array(),
+    if (params.some((elem) => elem !== null)) {
+        db.addUserProfile(params)
+            .then((data) => {
+                req.session.profileId = data.rows[0].id;
+                res.redirect('/petition');
+            })
+            .catch((err) => {
+                console.log('POST /profile error', err);
             });
-        }
     }
-);
+
+    if (errors.length > 0) {
+        console.log(errors.array());
+        res.render('profile', {
+            headerTitle,
+            registered,
+            signed,
+            errors,
+        });
+    }
+});
 app.get('/profile/edit', (req, res) => {
     console.log('profile/edit', req.session);
 
@@ -252,83 +254,47 @@ app.get('/profile/edit', (req, res) => {
             });
         });
 });
-app.post(
-    '/profile/edit',
-    [
-        check('first')
-            .optional({ nullable: true, checkFalsy: true })
-            .isLength({ min: 1 })
-            .isAlpha()
-            .withMessage('First name can only contain letters.'),
-        check('last')
-            .optional({ nullable: true, checkFalsy: true })
-            .isLength({ min: 1 })
-            .isAlpha()
-            .withMessage('Last name can only contain letters.'),
-        check('email')
-            .isEmail()
-            .withMessage('Must be a valid email.')
-            .optional({ nullable: true, checkFalsy: true }),
-        check('password').isLength({ min: 8 }),
-        check('homepage')
-            .optional({ nullable: true, checkFalsy: true })
-            .isURL()
-            .withMessage('Must be a valid URL.'),
-        check('city')
-            .optional({ nullable: true, checkFalsy: true })
-            .isLength({ min: 1 })
-            .withMessage("Are you sure you don't want to enter a City?")
-            .isAlpha()
-            .withMessage('City can only contain letters.'),
-        check('age')
-            .optional({ nullable: true, checkFalsy: true })
-            .isNumeric()
-            .withMessage('Age must be a number'),
-    ],
-    (req, res) => {
-        console.log('POST profile/edit', req.session);
-        console.log(req.body);
-        const { first, last, email, age, city, homepage } = req.body;
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log(errors.array());
-            res.render('editProfile', {
-                headerTitle,
-                registered,
-                signed,
-                usrData: {
-                    first_name: first,
-                    last_name: last,
-                    email,
-                    age,
-                    city,
-                    homepage,
-                },
-                errors: errors.array(),
-            });
-        } else {
-            const updtUser = db.updateUser([
-                req.session.registerId,
-                first,
-                last,
+app.post('/profile/edit', editProfileValidate(), (req, res) => {
+    console.log('POST profile/edit', req.session);
+    const { first, last, email, age, city, homepage } = req.body;
+    const errors = [...validate(req)];
+    if (errors.length > 0) {
+        res.render('editProfile', {
+            headerTitle,
+            registered,
+            signed,
+            usrData: {
+                first_name: first,
+                last_name: last,
                 email,
-            ]);
-            const updtProfile = db.updateUserProfile([
-                req.session.registerId,
                 age,
                 city,
                 homepage,
-            ]);
-            Promise.all([updtUser, updtProfile])
-                .then(() => {
-                    res.redirect('/profile');
-                })
-                .catch((err) => {
-                    console.log('error in updateUser ', err);
-                });
-        }
+            },
+            errors: errors.array(),
+        });
+    } else {
+        const updtUser = db.updateUser([
+            req.session.registerId,
+            first,
+            last,
+            email,
+        ]);
+        const updtProfile = db.updateUserProfile([
+            req.session.registerId,
+            age,
+            city,
+            homepage,
+        ]);
+        Promise.all([updtUser, updtProfile])
+            .then(() => {
+                res.redirect('/profile');
+            })
+            .catch((err) => {
+                console.log('error in updateUser ', err);
+            });
     }
-);
+});
 //////////////////////  LOGIN  //////////////////////////
 app.get('/login', (req, res) => {
     console.log('login', req.session);
