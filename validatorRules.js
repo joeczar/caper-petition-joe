@@ -36,9 +36,8 @@ const profileValidate = () => {
             .withMessage('Must be a valid URL.'),
         check('city')
             .optional({ nullable: true, checkFalsy: true })
-            .isLength({ min: 1 })
+            .isLength({ min: 3, max: 25 })
             .withMessage("Are you sure you don't want to enter a City?")
-            .isAlpha()
             .withMessage('City can only contain letters.'),
         check('age')
             .optional({ nullable: true, checkFalsy: true })
@@ -79,6 +78,18 @@ const editProfileValidate = () => {
             .withMessage('Age must be a number'),
     ];
 };
+const loginValidate = () => {
+    return [
+        check('emailInput')
+            .isEmail()
+            .withMessage('Must be a valid email.')
+            .optional({ nullable: true, checkFalsy: true }),
+        check('pwdInput'),
+    ];
+};
+const petitionValidate = () => {
+    return [check('signature').isURL().exists()];
+};
 const validate = (req) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -94,5 +105,7 @@ module.exports = {
     registerValidate,
     profileValidate,
     editProfileValidate,
+    loginValidate,
+    petitionValidate,
     validate,
 };

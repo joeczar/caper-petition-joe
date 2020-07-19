@@ -42,7 +42,7 @@ module.exports.deleteSignature = (params) => {
     return db.query(q, params);
 };
 module.exports.addUser = (params) => {
-    const q = `INSERT INTO users (first, last, email, hash) VALUES ($1, $2, $3, $4) RETURNING id`;
+    const q = `INSERT INTO users (first, last, email, hash) VALUES ($1, $2, $3, $4) RETURNING first, last, id`;
     return db.query(q, params);
 };
 module.exports.updateUser = (params) => {

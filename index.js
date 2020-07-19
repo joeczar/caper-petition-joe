@@ -6,12 +6,13 @@ const cookieSession = require('cookie-session');
 const csurf = require('csurf');
 const { hash, compare } = require('./bc');
 const { headerTitle, petitionReason, slides } = require('./petitionData');
-const { check, validationResult } = require('express-validator');
 const {
     passwordValidation,
     registerValidate,
     profileValidate,
     editProfileValidate,
+    loginValidate,
+    petitionValidate,
     validate,
 } = require('./validatorRules');
 let registered, signed, profile;
@@ -125,7 +126,6 @@ app.post('/register', registerValidate(), (req, res) => {
         .then((hashed) => {
             const { firstName, lastName, emailInput } = req.body;
             const usrArr = [firstName, lastName, emailInput, hashed];
-
             if (errors.length > 0) {
                 return res.render('register', {
                     title: 'Register',
@@ -142,12 +142,13 @@ app.post('/register', registerValidate(), (req, res) => {
             return db.addUser(data);
         })
         .then((data) => {
-            req.session.registerId = data.rows[0].id;
+            const { first, last, id } = data.rows[0];
+            req.session.registerId = id;
+            req.session.name = { first, last };
             res.redirect('/profile');
         })
         .catch((err) => {
             console.log('error in register', err);
-            let error;
             if (err.detail.includes('already exists')) {
                 errors.push(
                     'That email is already in use. Would you like to log in?'
@@ -163,7 +164,6 @@ app.post('/register', registerValidate(), (req, res) => {
                 signed,
             });
         });
-    // req.body.password
 });
 //////////////////////  PROFILE  //////////////////////
 app.get('/profile', (req, res) => {
@@ -228,7 +228,6 @@ app.post('/profile', profileValidate(), (req, res) => {
     }
 
     if (errors.length > 0) {
-        console.log(errors.array());
         res.render('profile', {
             headerTitle,
             registered,
@@ -308,56 +307,65 @@ app.get('/login', (req, res) => {
         });
     }
 });
-app.post('/login', (req, res) => {
+app.post('/login', loginValidate(), (req, res) => {
     console.log('POST login', req.session);
 
     const { emailInput, pwdInput } = req.body;
-
-    db.getUserLogin([emailInput])
-        .then((data) => {
-            console.log(data.rows[0]);
-            const {
-                register_id,
-                first,
-                last,
-                signature_id,
-                profile_id,
-                hash,
-            } = data.rows[0];
-            return compare(pwdInput, hash).then((data) => {
-                if (data) {
-                    // set login cookie
-                    req.session.registerId = register_id;
-                    req.session.signatureId = signature_id;
-                    req.session.profileId = profile_id;
-                    req.session.name = { first, last };
-                    // check if signed
-                    if (!signature_id) {
-                        res.redirect('/petition');
-                    } else {
-                        res.redirect('/thanks');
-                    }
-                } else {
-                    const errors = ["That email/password didn't work"];
-                    res.render('login', {
-                        headerTitle,
-                        registered,
-                        signed,
-                        errors,
-                    });
-                }
-            });
-        })
-        .catch((err) => {
-            console.log('error getting user hash', err);
-            const errors = ["That email/password didn't work"];
-            res.render('login', {
-                headerTitle,
-                registered,
-                signed,
-                errors,
-            });
+    const errors = [...validate(req)];
+    if (errors.length > 0) {
+        res.render('login', {
+            headerTitle,
+            registered,
+            signed,
+            errors,
         });
+    } else {
+        db.getUserLogin([emailInput])
+            .then((data) => {
+                console.log(data.rows[0]);
+                const {
+                    register_id,
+                    first,
+                    last,
+                    signature_id,
+                    profile_id,
+                    hash,
+                } = data.rows[0];
+                return compare(pwdInput, hash).then((data) => {
+                    if (data) {
+                        // set login cookie
+                        req.session.registerId = register_id;
+                        req.session.signatureId = signature_id;
+                        req.session.profileId = profile_id;
+                        req.session.name = { first, last };
+                        // check if signed
+                        if (!signature_id) {
+                            res.redirect('/petition');
+                        } else {
+                            res.redirect('/thanks');
+                        }
+                    } else {
+                        errors.push("That email/password didn't work");
+                        res.render('login', {
+                            headerTitle,
+                            registered,
+                            signed,
+                            errors,
+                        });
+                    }
+                });
+            })
+            .catch((err) => {
+                console.log('error getting user hash', err);
+                errors.push("That email/password didn't work");
+                res.render('login', {
+                    headerTitle,
+                    registered,
+                    signed,
+                    errors,
+                });
+            });
+    }
 });
 
 /////////////////////////  PETITION  ////////////////////////////////
@@ -368,37 +376,41 @@ app.get('/petition', (req, res) => {
     } else if (req.session.signatureId) {
         res.redirect('/thanks');
     } else {
-        db.getUserName([req.session.registerId])
-            .then((data) => {
-                console.log('/petition - getUserName', data.rows);
-                res.render('petitionPage', {
-                    title: 'Petition',
-                    headerTitle,
-                    petitionReason,
-                    name: data.rows[0],
-                    registered,
-                    signed,
-                });
-            })
-            .catch((err) => {
-                console.log('GET /petition error', err);
-            });
+        res.render('petitionPage', {
+            title: 'Petition',
+            headerTitle,
+            petitionReason,
+            name: req.session.name,
+            registered,
+            signed,
+        });
     }
 });
-app.post('/petition', (req, res) => {
+app.post('/petition', petitionValidate(), (req, res) => {
     if (req.session.signatureId) {
         res.redirect('/thanks');
     } else {
         console.log('POST petition', req.session);
         const { signature } = req.body;
         const userId = req.session.registerId;
-
-        db.addSignature([signature, userId])
-            .then((data) => {
-                req.session.signatureId = data.rows[0].id;
-                res.redirect('/thanks');
-            })
-            .catch((err) => console.log('error in add-signature', err));
+        const errors = [...validate(req)];
+        if (errors.length > 0) {
+            res.render('petitionPage', {
+                title: 'Petition',
+                headerTitle,
+                petitionReason,
+                name: req.session.name,
+                registered,
+                signed,
+            });
+        } else {
+            db.addSignature([signature, userId])
+                .then((data) => {
+                    req.session.signatureId = data.rows[0].id;
+                    res.redirect('/thanks');
+                })
+                .catch((err) => console.log('error in add-signature', err));
+        }
     }
 });
 //////////////////////////  SIGNERS  //////////////////////////
@@ -511,10 +523,6 @@ app.post('/signature/delete', (req, res) => {
 });
 
 app.use(express.static('public'));
-
-// app.listen(process.env.PORT || 8080, () =>
-//     console.log('My Petition server running at 8080')
-// );
 
 if (require.main === module) {
     app.listen(process.env.PORT || 8080, () =>
