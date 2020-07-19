@@ -33,7 +33,7 @@ module.exports.slides = [
     {
         id: 'three',
         class: 'grey',
-        next: '#',
+        next: '#four',
         headline:
             'Do you know what alternatives might exist, or what they might cost?',
         url:

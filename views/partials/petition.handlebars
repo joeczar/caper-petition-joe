@@ -2,6 +2,7 @@
 <div class="formWrapper shadow-3">
     <header class="formHeader shadow-3"><h2>Sign here:</h2></header>
     <form class='form' id="petitionForm" name="petitionForm" action='/petition' method='POST' target="/thanks">
+    {{>error}}
         <div class="inputWrapper">
             <div class="canvasWrapper">
                 <label for='canvas'>Signature:</label>

@@ -45,6 +45,13 @@
             console.log('Logout');
         });
     });
+    ///////////////  MENU HANDLER  //////////////////
+    $('#menuWrapper').on('click', (e) => {
+        $('#menuWrapper').toggleClass('close');
+        $('#menuWrapper').hasClass('close')
+            ? $('#menuSlider').animate({ right: '0px' }, 500)
+            : $('#menuSlider').animate({ right: '-180px' }, 500);
+    });
 
     /////////////////  DELETE SIGNATURE HANDLER //////////////////
     $('#deleteSigBtn').on('click', (e) => {

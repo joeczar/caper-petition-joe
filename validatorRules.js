@@ -88,7 +88,7 @@ const loginValidate = () => {
     ];
 };
 const petitionValidate = () => {
-    return [check('signature').isURL().exists()];
+    return [check('signature').exists()];
 };
 const validate = (req) => {
     const errors = validationResult(req);

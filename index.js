@@ -402,6 +402,7 @@ app.post('/petition', petitionValidate(), (req, res) => {
                 name: req.session.name,
                 registered,
                 signed,
+                errors,
             });
         } else {
             db.addSignature([signature, userId])

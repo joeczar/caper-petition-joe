@@ -9,6 +9,7 @@
     --secondary-dark: #227581;
     --almost-black: #1b1b1e;
     --light-steel-blue: #a9bcd0;
+    --brink-pink: #e85d75;
 }
 @font-face {
     font-family: 'manrope-regular';
@@ -117,6 +118,49 @@ canvas {
 .title h1 {
     margin: auto;
 }
+/* menu */
+#menuWrapper {
+    margin: auto 25px auto 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    height: 25px;
+}
+.bar {
+    width: 25px;
+    height: 2px;
+    background-color: var(--light-steel-blue);
+    margin: auto 0px;
+    transition: margin-bottom 0.5s ease, transform 0.5s ease-out;
+}
+#menuSlider {
+    position: absolute;
+    top: 50px;
+    width: 175px;
+    padding: 2em 1em;
+    background-color: var(--secondary);
+    color: var(--light-text);
+    right: -180px;
+    transition: right 0.5 ease;
+}
+#menuSlider a {
+    color: var(--light-text);
+}
+
+.navLink {
+    padding: 0.5em 0em;
+}
+.close #top {
+    margin-bottom: -38px;
+    transform: rotate(45deg);
+}
+.close #bottom {
+    transform: rotate(-45deg);
+}
+.close #middle {
+    opacity: 0;
+}
 /* header#landing */
 #landing {
     height: 50px;
@@ -132,22 +176,23 @@ canvas {
 /* login/register  */
 .loginWrapper {
     display: flex;
-    align-self: flex-end;
+    justify-self: right;
     flex-direction: row;
     justify-content: center;
-    margin: auto 2em auto auto;
-    width: 250px;
+    margin: auto 1em auto auto;
+    /* width: 250px; */
 }
 .loginWrapper a {
-    margin: auto;
+    margin: auto 10px auto auto;
 }
+
 #landingLogin a {
     color: var(--secondary-light);
 }
 .logoutWrapper {
     display: flex;
     flex-direction: column;
-    width: 300px;
+    /* width: 300px; */
     position: relative;
 }
 .logoutLinkWrapper {
@@ -167,6 +212,8 @@ canvas {
     padding: 1em;
     z-index: 5;
     top: -200px;
+    right: -10px;
+    width: 250px;
 }
 #logoutForm {
     display: flex;
@@ -265,6 +312,7 @@ figcaption {
 /* fsCard */
 article {
     margin: auto;
+    margin-top: 30px;
     width: 100vw;
 }
 #homeWrapper::-webkit-scrollbar {
@@ -280,6 +328,7 @@ article {
     background-repeat: no-repeat;
 }
 #one {
+    margin-top: -25px;
 }
 #two {
     background-color: var(--primary-dark);
@@ -332,6 +381,43 @@ article {
 }
 .leftAr {
     margin-right: -7px;
+}
+.pitch {
+    padding: 2em 2em 2em 2em;
+    display: flex;
+    background-color: var(--brink-pink);
+    color: var(--primary-dark);
+    height: 100%;
+}
+.pitch h1 {
+    font-size: xx-large;
+}
+.pitch a {
+    color: var() var(--primary-light);
+}
+.pitch .columnWrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+}
+.pitch .column {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    padding: 1em;
+    margin: 1em auto auto;
+    height: 100%;
+    background-color: var(--light-text);
+}
+.registerLink {
+    margin: auto;
+}
+
+.attribution {
+    display: flex;
+    flex-direction: row;
+    font-size: xx-small;
 }
 .error {
     background-color: var(--light-text);
